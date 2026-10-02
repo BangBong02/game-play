@@ -81,7 +81,7 @@ Astro chuẩn bị question banks từ dataset lọc language/level/topic. React
 - **Image → Word:** chọn từ English từ SVG local có alt text.
 - **Type the Word:** nhập từ English từ nghĩa tiếng Việt; trim và bỏ qua hoa/thường.
 
-Choice generator ưu tiên distractor cùng topic, fallback pool cùng language/level và loại đáp án trùng/đồng nghĩa với đáp án đúng. Khi không đủ 4 lựa chọn hợp lệ, bỏ câu đó và disable mode nếu bank rỗng; typing vẫn chơi được với dataset nhỏ. Thứ tự câu hỏi và options được shuffle lúc bắt đầu rồi lưu nguyên round. Answer khóa sau submit; người dùng chọn Next thủ công. Layout feedback, score, progress, result và restart dùng chung.
+Helper `generateDistractors` dùng chung cho ba choice mode: ưu tiên cùng topic, fallback pool đã lọc language/level và loại đáp án trùng/đồng nghĩa với đáp án đúng. Khi không đủ 4 lựa chọn hợp lệ, bỏ câu đó và disable mode nếu bank rỗng; typing vẫn chơi được với dataset nhỏ. Thứ tự câu hỏi và options được shuffle lúc bắt đầu rồi lưu nguyên round. Answer khóa sau submit; người dùng chọn Next thủ công. Layout feedback, score, progress, result và restart dùng chung.
 
 `ProgressStore` dùng key `lingoplay:v2:language:level:topic:mode`, kèm summary `:recent`. Lưu config/questions/state, timestamp và `lastResult`; reload kiểm tra data/schema trước khi khôi phục câu hoặc result. Mỗi mode có round riêng. Đọc progress v1 của Word → Meaning và chuyển sang v2 khi chơi tiếp, giữ nguyên key v1. Data đã thay đổi hoặc JSON hỏng bắt đầu lượt mới; storage bị chặn vẫn chơi được. Play again reset answers/index, giữ kết quả hoàn thành gần nhất. Back to topic quay lại bộ chọn mode trên cùng trang.
 

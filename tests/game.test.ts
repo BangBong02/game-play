@@ -4,7 +4,7 @@ import test from 'node:test';
 import { wordBelongsToLevel } from '../src/config/course.ts';
 import { words as dataset } from '../src/data/content.ts';
 import { filterWords } from '../src/repositories/content.ts';
-import { advanceGame, createSession, gameModes, generateQuestions, getScore, getStats, isCorrectAnswer, isValidGameState, isValidQuestion, normalizeAnswer, type ChoiceQuestion, type GameState, type SessionConfig } from '../src/game/vocabulary.ts';
+import { advanceGame, createSession, gameModes, generateDistractors, generateQuestions, getScore, getStats, isCorrectAnswer, isValidGameState, isValidQuestion, normalizeAnswer, type ChoiceQuestion, type GameState, type SessionConfig } from '../src/game/vocabulary.ts';
 import { createSavedProgress, progressStore, readStoredSession } from '../src/services/progress.ts';
 import type { Word } from '../src/types/content.ts';
 
@@ -78,6 +78,29 @@ test('distractors prefer topic words and fall back safely within the provided le
   assert.equal(generateQuestions(duplicates, 'word-to-meaning', duplicates, random).length, words.length);
 });
 
+test('distractor helper excludes equivalent answers, duplicates, blanks and other languages', () => {
+  const invalid = [
+    { ...words[0], id: 90, word: ' DOG ', meaning: 'different meaning' },
+    { ...words[0], id: 91, word: 'hound', meaning: ' MEANING 0 ' },
+    { ...words[1], id: 92, word: ' CAT ', meaning: ' MEANING 1 ' },
+    { ...words[0], id: 93, word: 'chien', meaning: 'French meaning', language: 'fr' },
+    { ...words[0], id: 94, word: ' ', meaning: ' ' },
+  ];
+  const topic = words.slice(0, 2);
+  const pool = [...words, ...invalid];
+  const snapshot = JSON.stringify({ topic, pool });
+  for (const field of ['word', 'meaning'] as const) {
+    const distractors = generateDistractors(words[0], field, topic, pool, random);
+    assert.equal(distractors[0], words[1][field]);
+    assert.equal(distractors.length, 3);
+    assert.equal(new Set(distractors.map(normalizeAnswer)).size, 3);
+    assert.ok(distractors.every(answer => words.slice(1).some(word => normalizeAnswer(word[field]) === normalizeAnswer(answer))));
+    assert.deepEqual(generateDistractors(words[0], field, topic, [], random), [words[1][field]]);
+    assert.deepEqual(generateDistractors(words[0], field, topic, invalid, random), [words[1][field]]);
+  }
+  assert.equal(JSON.stringify({ topic, pool }), snapshot);
+});
+
 test('image questions use only available local SVGs with descriptive alternative text', () => {
   assert.equal(dataset.length, 20);
   for (const word of dataset) {
@@ -113,7 +136,7 @@ test('answers lock once submitted and unanswered questions cannot be skipped', (
 
 test('typing trims whitespace, ignores case, handles wrong answers and refuses empty input', () => {
   const typed = generateQuestions(words, 'type-the-word');
-  assert.equal(isCorrectAnswer(typed[0], '  DOG  '), true);
+  for (const answer of ['dog', 'Dog', '  DOG  ']) assert.equal(isCorrectAnswer(typed[0], answer), true);
   assert.equal(isCorrectAnswer(typed[0], 'cat'), false);
   assert.equal(isCorrectAnswer(typed[0], 'do g'), false);
   const initial = { index: 0, answers: [] };

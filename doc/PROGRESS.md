@@ -134,6 +134,21 @@ Kết quả đã xác nhận:
 
 Kết nối GitHub và deploy từ Git hoàn thành; giữ tag `v0.1.0-base`. Nội dung/rank vẫn là demo, Phase 2 chưa triển khai.
 
+### 2026-10-02 — Rà soát Vocabulary Engine v1 và tách helper distractor
+
+Yêu cầu Vocabulary Engine v1 được gửi lại sau khi bản bốn mode đã có trong codebase. Giữ engine/session, React island, data và progress hiện có; không rewrite. Tách `generateDistractors` khỏi question generator thành helper độc lập trong cùng file, dùng chung cho ba choice mode. Repository vẫn chịu trách nhiệm lọc level trước khi truyền pool; helper ưu tiên topic và loại đáp án trùng, tương đương đáp án đúng hoặc khác language. Không thêm dependency/backend hay mở rộng dataset.
+
+Validation đã chạy trên code/build hiện tại:
+
+- `npm test`: 15/15 pass. Bổ sung test trực tiếp cho helper về đáp án tương đương, trùng, rỗng, khác language, ưu tiên topic, fallback và không mutate dữ liệu; typing kiểm tra đủ `dog`, `Dog`, ` DOG `.
+- `npm run build` với `SITE_URL` production: 25 trang static, Astro/TypeScript 0 errors/warnings/hints. Project chưa có script lint; `git diff --check` pass.
+- HTTP preview `http://127.0.0.1:4323`: 24 HTML routes trả 200 và khớp build vừa tạo; chín trang vocabulary có H1/bảng HTML, một game island và canonical đúng. Các bài blog/grammar/guides không có React island; 20 SVG local trả 200.
+- Browser Colors: Word → Meaning 3/4 (75%), Meaning → Word 4/4 (100%), Image → Word 4/4 (100%), Type the Word 3/4 (75%). Kiểm tra answer đúng/sai, khóa answer, Next thủ công, progress và result.
+- Reload giữ feedback/câu hiện tại và result; Play again reset input/progress; Back to topic, bộ chọn mode và navigation topic list hoạt động.
+- Mobile với viewport override 390×844: ảnh tải được, input và kết quả không cuộn ngang; typing xử lý input rỗng, chữ hoa/khoảng trắng, Backspace và Enter. Đã reset viewport sau kiểm tra. Console không error/warning.
+
+README đã cập nhật mô tả helper. Phase 3 vẫn hoàn thành; phạm vi phase không đổi. Thay đổi được chuẩn bị để commit/push theo yêu cầu; commit tương ứng xem trong Git history. Tiếp theo vẫn là review UX và xác nhận dataset/rank ở Phase 2, chưa tự triển khai.
+
 ## Cách cập nhật
 
 Sau mỗi task:

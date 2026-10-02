@@ -31,7 +31,24 @@ export function shuffle<T>(items: readonly T[], random: () => number = Math.rand
   return result;
 }
 
-// Topic words come first; the level's shared dataset supplies distractors only when needed.
+// Topic words come first; callers supply the shared dataset already filtered to the level.
+export function generateDistractors(word: Word, answerField: 'word' | 'meaning', words: Word[], pool: Word[] = words, random: () => number = Math.random): string[] {
+  const spelling = normalizeAnswer(word.word);
+  const meaning = normalizeAnswer(word.meaning);
+  const seen = new Set([normalizeAnswer(word[answerField])]);
+  const candidates = (source: Word[]) => source.filter(candidate => candidate.language === word.language && normalizeAnswer(candidate.word) !== spelling && normalizeAnswer(candidate.meaning) !== meaning);
+  const wrong: string[] = [];
+  for (const candidate of [...shuffle(candidates(words), random), ...shuffle(candidates(pool), random)]) {
+    const answer = candidate[answerField];
+    const normalized = normalizeAnswer(answer);
+    if (!normalized || seen.has(normalized)) continue;
+    seen.add(normalized);
+    wrong.push(answer);
+    if (wrong.length === 3) break;
+  }
+  return wrong;
+}
+
 export function generateQuestions(words: Word[], mode: GameMode, pool: Word[] = words, random: () => number = Math.random): Question[] {
   const questions: Question[] = [];
   const ids = new Set<string>();
@@ -47,17 +64,7 @@ export function generateQuestions(words: Word[], mode: GameMode, pool: Word[] = 
     if (mode === 'type-the-word') {
       questions.push({ ...content, kind: 'typing' });
     } else {
-      const seen = new Set([normalizeAnswer(correctAnswer)]);
-      const candidates = (source: Word[]) => source.filter(candidate => candidate.language === word.language && normalizeAnswer(candidate.word) !== normalizeAnswer(word.word) && normalizeAnswer(candidate.meaning) !== normalizeAnswer(word.meaning));
-      const wrong: string[] = [];
-      for (const candidate of [...shuffle(candidates(words), random), ...shuffle(candidates(pool), random)]) {
-        const answer = reverse ? candidate.word : candidate.meaning;
-        const normalized = normalizeAnswer(answer);
-        if (!normalized || seen.has(normalized)) continue;
-        seen.add(normalized);
-        wrong.push(answer);
-        if (wrong.length === 3) break;
-      }
+      const wrong = generateDistractors(word, reverse ? 'word' : 'meaning', words, pool, random);
       if (wrong.length < 3) continue;
       questions.push({ ...content, kind: 'choice', options: shuffle([correctAnswer, ...wrong], random), ...(mode === 'image-to-word' ? { promptLanguage: word.language, image: { url: word.imageUrl!, alt: word.imageAlt! } } : {}) });
     }
