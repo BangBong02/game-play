@@ -1,0 +1,22 @@
+[
+  {
+    "id": "little-learning-habits",
+    "title": "Make room for a little English every day",
+    "description": "Build a manageable English learning routine with a few words, a short game, and a little review.",
+    "language": "en",
+    "sections": [
+      {
+        "heading": "Start with something familiar",
+        "paragraphs": ["Choose a topic you meet in everyday life, such as food or animals. Learn a small set of words and connect each one to something you can picture."]
+      },
+      {
+        "heading": "Try remembering before checking",
+        "paragraphs": ["Read the word, think of its meaning, and then choose an answer in the game. If you make a mistake, pause to read the correct meaning before moving on."]
+      },
+      {
+        "heading": "Return to the words",
+        "paragraphs": ["Review a few words on another day and try using them in a sentence. Pick a routine that feels manageable rather than rushing through every topic at once."]
+      }
+    ]
+  }
+]

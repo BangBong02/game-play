@@ -1,0 +1,5 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { coursePath, languages } from '../config/course';
+---
+<BaseLayout title="Page not found"><div class="page-container not-found"><span class="eyebrow">404 · A LITTLE DETOUR</span><h1>Let's find your way back.</h1><p>This adventure isn't here. There's plenty to discover at home.</p><a class="primary-button" href={coursePath(languages[0].id)}>Explore games →</a></div></BaseLayout>

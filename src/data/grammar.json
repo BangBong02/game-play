@@ -1,0 +1,25 @@
+[
+  {
+    "id": "a-and-an",
+    "title": "A or an? Listen to the first sound",
+    "description": "Learn when to use a and an before singular countable nouns, with simple food and animal examples.",
+    "language": "en",
+    "sections": [
+      {
+        "heading": "Use a before a consonant sound",
+        "paragraphs": ["Use a when the following word begins with a consonant sound. The article introduces one singular countable thing."],
+        "examples": ["a dog", "a cat", "a rabbit"]
+      },
+      {
+        "heading": "Use an before a vowel sound",
+        "paragraphs": ["Use an when the following word begins with a vowel sound. Listen to the sound rather than looking only at the first letter."],
+        "examples": ["an apple", "an elephant", "an hour — the h is silent"]
+      },
+      {
+        "heading": "The next word's sound matters",
+        "paragraphs": ["If an adjective comes before the noun, choose the article using the adjective's first sound. A word beginning with a vowel letter can still start with a consonant sound."],
+        "examples": ["an orange cat", "a small elephant", "a university — university starts with a /y/ sound"]
+      }
+    ]
+  }
+]

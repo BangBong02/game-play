@@ -1,0 +1,54 @@
+---
+import BaseLayout from '../../../../layouts/BaseLayout.astro';
+import GameSession from '../../../../components/game/GameSession';
+import { languages, levels, skills, coursePath } from '../../../../config/course';
+import { topicRepository, wordRepository } from '../../../../repositories/content';
+import { createQuestions } from '../../../../game/multiple-choice';
+export async function getStaticPaths() {
+  const routes = [];
+  for (const language of languages) {
+    for (const level of levels) {
+      for (const skill of skills.filter(item => item.available)) {
+        for (const topic of await topicRepository.list(language.id)) {
+          const topicWords = await wordRepository.list(language.id, level.id, topic.id);
+          const questions = createQuestions(topicWords);
+          if (questions.length) routes.push({ params: { language: language.id, level: level.id, skill: skill.id, topic: topic.id }, props: { language, level, skill, topic, topicWords, questions } });
+        }
+      }
+    }
+  }
+  return routes;
+}
+const { language, level, skill, topic, topicWords, questions } = Astro.props;
+const backHref = coursePath(language.id, level.id, skill.id);
+const description = `Learn ${topicWords.length} ${language.name} words about ${topic.name.toLowerCase()} with Vietnamese meanings, then practice with a ${level.name.toLowerCase()} multiple choice game.`;
+---
+<BaseLayout title={`${topic.name} vocabulary — ${level.name} ${language.name}`} description={description} language={language.id}>
+  <div class="page-container game-page">
+    <nav class="breadcrumbs" aria-label="Breadcrumb"><a href={coursePath(language.id)}>{language.name}</a><span aria-hidden="true">/</span><a href={coursePath(language.id, level.id)}>{level.name}</a><span aria-hidden="true">/</span><a href={backHref}>{skill.name}</a><span aria-hidden="true">/</span><span aria-current="page">{topic.name}</span></nav>
+    <div class="game-heading"><a class="back-link" href={backHref}>← Back to topics</a><span class:list={['pill', topic.color]}><span aria-hidden="true">{topic.icon}</span> {topic.name} · {level.name}</span></div>
+    <header class="page-heading reading-width">
+      <h1>{topic.name} vocabulary<span class="heading-dot">.</span></h1>
+      <p>{topic.description} Learn {topicWords.length} {language.name} words and their Vietnamese meanings, then check what you remember.</p>
+      <div class="article-links"><a class="primary-button" href="#practice">Play the game ↓</a><a class="secondary-button" href="#word-list">Review the words</a></div>
+    </header>
+    <section id="practice" class="reading-width practice-section" aria-labelledby="practice-heading">
+      <h2 id="practice-heading">Practice what you remember</h2>
+      <p>Choose one meaning for each word. Read the feedback, then select Next word. Your round is saved on this device.</p>
+      <GameSession client:visible questions={questions} progressKey={{ language: language.id, level: level.id, topic: topic.id }} backHref={backHref} />
+      <noscript><p class="notice">Enable JavaScript to play. You can still read the full word list below.</p></noscript>
+    </section>
+    <section id="word-list" class="prose reading-width vocabulary-content" aria-labelledby="word-list-heading">
+      <h2 id="word-list-heading">{topic.name} word list</h2>
+      <p>Read each word and its meaning. Before your next round, cover the meanings and try recalling them yourself.</p>
+      <table class="word-table">
+        <caption>{topicWords.length} {language.name} vocabulary words about {topic.name.toLowerCase()}</caption>
+        <thead><tr><th scope="col">{language.name} word</th><th scope="col">Vietnamese meaning</th></tr></thead>
+        <tbody>{topicWords.map(word => <tr><th scope="row" lang={language.id}>{word.word}</th><td lang="vi">{word.meaning}</td></tr>)}</tbody>
+      </table>
+      <h2>Keep exploring</h2>
+      <p>Try another vocabulary topic or read a learning guide before your next game.</p>
+      <div class="article-links"><a href={backHref}>More vocabulary topics →</a><a href={coursePath(language.id, 'learn', 'guides')}>Learning guides →</a></div>
+    </section>
+  </div>
+</BaseLayout>

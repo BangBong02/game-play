@@ -1,0 +1,32 @@
+---
+import '../styles/global.css';
+import { coursePath, languages } from '../config/course';
+interface Props { title: string; description?: string; language?: string }
+const { title, description = 'Learn a little, play a little. Explore language learning games at your own pace.', language = languages[0].id } = Astro.props;
+const home = coursePath(language);
+const canonical = Astro.site ? new URL(Astro.url.pathname, Astro.site) : undefined;
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content={description} />
+    <meta name="theme-color" content="#f9faf6" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    {canonical && <link rel="canonical" href={canonical.href} />}
+    <title>{title} · Lingoplay</title>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <header class="site-header">
+      <div class="header-inner">
+        <a class="brand" href={home} aria-label="Lingoplay home"><span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span>lingo<span>play</span><span class="brand-dot">.</span></a>
+        <nav aria-label="Main navigation"><a class="nav-link" href={home}>Let's learn</a><a class="nav-link" href={`${home}#how-it-works`}>How it works</a></nav>
+        <span class="language-badge"><span aria-hidden="true">🇬🇧</span> English</span>
+      </div>
+    </header>
+    <main id="main"><slot /></main>
+    <footer class="site-footer"><a class="footer-brand" href={home}>lingoplay.</a><span>A little play. A lot of learning.</span><a class="library-link" href={coursePath(language, 'learn')}>Learning library →</a><span class="footer-note">Made for curious minds <span aria-hidden="true">✦</span></span></footer>
+  </body>
+</html>

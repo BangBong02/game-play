@@ -1,0 +1,32 @@
+---
+import PlantArt from './PlantArt.astro';
+interface Props {
+  name: string;
+  description: string;
+  icon: string;
+  color?: string;
+  href?: string;
+  subtitle?: string;
+  detail?: string;
+  variant?: 'level' | 'topic' | 'skill';
+  progressKey?: string;
+  action?: string;
+}
+const { name, description, icon, href, subtitle, detail, color = 'green', variant = 'topic', progressKey, action } = Astro.props;
+const Tag = href ? 'a' : 'article';
+---
+<Tag href={href} class:list={['learning-card', color, variant, { unavailable: !href }]}>
+  {variant === 'level' ? <>
+    <div class="card-top"><span class="small-label">{subtitle}</span><span class="card-arrow" aria-hidden="true">↗</span></div>
+    <PlantArt kind={icon} />
+    <h3>{name}</h3>
+    <p>{description}</p>
+    <span class="card-detail">{detail}</span>
+    <span class="card-action">Let's play <span aria-hidden="true">→</span></span>
+  </> : <>
+    <div class="card-top"><span class="topic-icon" aria-hidden="true">{icon}</span><span class="status-label">{href ? subtitle || 'Ready to play' : 'Coming soon'}</span></div>
+    <h3>{name}</h3>
+    <p>{description}</p>
+    {href && <span class="topic-action" data-progress={progressKey}>{action || (variant === 'skill' ? 'Explore topics' : 'Play a quick game')} <span aria-hidden="true">→</span></span>}
+  </>}
+</Tag>

@@ -1,0 +1,22 @@
+[
+  {
+    "id": "play-and-review",
+    "title": "Learn a topic, play a game, review your words",
+    "description": "A quick guide to vocabulary topics, multiple choice games, and progress saved on your device.",
+    "language": "en",
+    "sections": [
+      {
+        "heading": "Choose your topic",
+        "paragraphs": ["Start with a level, open Vocabulary, and pick an available topic. Each topic page includes a word list with Vietnamese meanings that you can read before or after playing."]
+      },
+      {
+        "heading": "Play one question at a time",
+        "paragraphs": ["Choose the meaning that matches the word. The game shows whether your choice is correct, then you can move to the next question. Use Tab and Enter if you prefer the keyboard."]
+      },
+      {
+        "heading": "Pick up where you left off",
+        "paragraphs": ["Your current round is saved in this browser on this device. Reloading restores the round when browser storage is available. Play again starts a new round; clearing browser storage removes saved progress."]
+      }
+    ]
+  }
+]
