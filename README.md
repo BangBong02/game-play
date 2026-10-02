@@ -32,6 +32,7 @@ src/
   types/content.ts          # Word/Topic; URL ảnh và audio tùy chọn
   repositories/content.ts   # Interface async + implementation đọc local
   game/vocabulary.ts        # 4 mode, generator, session, transitions, scoring
+  game/eligibility.ts       # Điều kiện tham gia game, độc lập React
   components/               # Card/illustration Astro + React game/session
   services/progress.ts      # ProgressStore dùng localStorage
   layouts/BaseLayout.astro  # Header, footer, SEO
@@ -52,7 +53,15 @@ public/images/vocabulary/    # 20 SVG local cho Image → Word
 /en/easy/vocabulary/animals
 ```
 
-Medium/Hard dùng cùng cấu trúc. Animals có 10 câu, Food 6 câu, Colors 4 câu ở mỗi mode; round tối đa 10 câu. Các skill khác và topic chưa có data hiển thị Coming soon; không tạo link chết.
+Medium/Hard dùng cùng cấu trúc; round tối đa 10 câu. Số từ demo được lọc thật theo level:
+
+| Level | Tổng từ duy nhất | Animals | Food | Colors |
+| --- | ---: | ---: | ---: | ---: |
+| Easy | 11 | 6 | 6 | 0 |
+| Medium | 18 | 9 | 7 | 3 |
+| Hard | 20 | 10 | 7 | 4 |
+
+`chicken` thuộc cả Animals và Food nên tổng các topic có thể lớn hơn số từ duy nhất. Skill chưa triển khai và topic chưa có data hiển thị Coming soon trên danh sách. URL của topic đã cấu hình nhưng rỗng có HTML thông báo thân thiện, link quay lại và không có React game island.
 
 Trang topic có một H1, giới thiệu, hướng dẫn chơi và bảng từ/nghĩa render thành HTML bằng Astro từ cùng dataset mà generator dùng. JavaScript bị tắt vẫn đọc được nội dung; chỉ game cần JavaScript. Title/description riêng theo topic, canonical được thêm khi có `SITE_URL`.
 
@@ -93,7 +102,22 @@ Helper `generateDistractors` dùng chung cho ba choice mode: ưu tiên cùng top
 
 Mọi từ nằm trong một dataset có `language`, `rank`, `topics`. Level lấy ngưỡng từ config: Easy ≤ 300, Medium ≤ 1.200, Hard ≤ 3.000. Dataset có tính tích lũy: từ Easy cũng thuộc Medium/Hard.
 
-20 từ và rank hiện tại chỉ minh họa, chưa đại diện cho danh sách tần suất thực tế. Vì vậy cả 3 level hiện dùng cùng bộ từ demo. Con số trên card là quy mô mục tiêu.
+20 từ và rank hiện tại chỉ minh họa, chưa đại diện cho danh sách tần suất thực tế. Một số từ vượt rank 300 hoặc 1.200 để kiểm chứng filtering. Con số 300/1.200/3.000 trên card level là quy mô mục tiêu; count trên topic là số từ hiện có sau filter.
+
+`getLevelRankRange(level, progression)` lấy giới hạn từ `config/course.ts`. Repository mặc định cumulative; không có UI chọn progression:
+
+```ts
+await wordRepository.list('en', 'easy', 'animals'); // rank 1–300
+await wordRepository.list('en', 'medium'); // rank 1–1200
+await wordRepository.list('en', 'medium', 'animals', 'new-only'); // rank 301–1200
+await wordRepository.list('en', 'hard', undefined, 'new-only'); // rank 1201–3000
+```
+
+`Word` giữ ID số ổn định, `language`, `word`, `meaning`, `rank`, `topics: string[]`; các trường tùy chọn gồm `partOfSpeech`, `phonetic`, `example`, `imageUrl`, `imageAlt`, `audioUrl`, `visual`. Một từ chỉ xuất hiện một lần trong dataset, có thể thuộc nhiều topic. Thêm metadata không đổi engine/UI.
+
+`isWordEligible(word, activity)` dùng chung trong generator: ba mode text cần word/meaning không rỗng; Image → Word còn cần SVG local, alt mô tả và không bị đánh dấu `visual: false`. `visual` chưa khai báo vẫn tương thích Image → Word cũ. Quy tắc `image-match` cần ảnh hợp lệ và `visual: true`; `listening` cần `audioUrl` không rỗng. Hai quy tắc sau chỉ là helper chuẩn bị, chưa có game/audio/PixiJS. Distractor dùng từ có text hợp lệ trong pool cùng level, không bắt buộc có ảnh.
+
+Session đã lưu có từ/đáp án không còn hợp lệ sẽ bị engine bỏ qua khi đọc, bắt đầu round mới; không xóa localStorage hoặc đổi key. Topic card ẩn summary có câu hỏi nằm ngoài tập từ hiện tại.
 
 Thêm language trong config và data tương ứng; `getStaticPaths` tạo URL theo data. Thêm level/topic không cần copy page. Skill mới cần có controller/generator phù hợp trước khi bật `available`; hiện chỉ Vocabulary được triển khai.
 
@@ -143,11 +167,11 @@ Phase hiện tại chỉ có TypeScript/JSON local và localStorage. Repository 
 
 ## Bước tiếp theo
 
-1. Review UI/UX mới trên desktop/mobile và bốn mode hiện có.
-2. Xác nhận dataset/rank thật rồi mở rộng từ vựng theo topic từng phần.
+1. Xác nhận nguồn/licence, tiêu chí rank và nghĩa tiếng Việt cho Easy 300 thật.
+2. Nhập từng phần vào dataset local theo `Word`: ID ổn định, rank 1–300, topics hợp lệ, kiểm tra trùng từ và nội dung. Từ trừu tượng giữ `visual: false`, không cần ảnh; kiểm chứng filter/count/eligibility và flow mẫu sau mỗi phần, không đổi engine/UI.
 3. Bổ sung blog/grammar/guides vào các collection sau khi xác nhận cấu trúc nội dung mẫu.
 
-Phần UI/UX đã cập nhật; nội dung/rank vẫn là demo. Trạng thái và validation chi tiết xem trong progress.
+Phần UI/UX và data layer đã cập nhật; nội dung/rank vẫn là 20 từ demo, chưa nhập Easy 300. Trạng thái và validation chi tiết xem trong progress.
 
 ## Phase và tiến trình
 

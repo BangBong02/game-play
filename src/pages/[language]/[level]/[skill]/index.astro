@@ -6,9 +6,10 @@ import { topicRepository, wordRepository } from '../../../../repositories/conten
 export function getStaticPaths() { return languages.flatMap(language => levels.flatMap(level => skills.filter(skill => skill.available).map(skill => ({ params: { language: language.id, level: level.id, skill: skill.id }, props: { language, level, skill } })))); }
 const { language, level, skill } = Astro.props;
 const topics = await topicRepository.list(language.id);
+const levelWords = await wordRepository.list(language.id, level.id);
 const topicCards = await Promise.all(topics.map(async topic => {
   const words = await wordRepository.list(language.id, level.id, topic.id);
-  return { ...topic, count: words.length };
+  return { ...topic, count: words.length, wordIds: words.map(word => `${word.language}-${word.id}`) };
 }));
 ---
 <BaseLayout title={`${level.name} ${language.name} ${skill.name} games`} language={language.id}>
@@ -17,14 +18,23 @@ const topicCards = await Promise.all(topics.map(async topic => {
     <header class="page-heading"><span class:list={['pill', level.color]}>{level.name} · {language.name}</span><h1>Pick a topic<span class="heading-dot">.</span></h1><p>A world of words. Choose something you love and start playing.</p></header>
     <div class="section-heading"><h2>Pick your topic</h2><span class="section-aside">English words. Vietnamese meanings.</span></div>
     <div class="content-grid topic-grid">{topicCards.map(topic => <LearningCard {...topic} compact href={topic.count ? coursePath(language.id, level.id, skill.id, topic.id) : undefined} subtitle={`${topic.count} words`} progressKey={`${language.id}:${level.id}:${topic.id}`} />)}</div>
-    <p class="demo-note">20 demo words to get you started. Your progress is saved on this device.</p>
+    {levelWords.length === 0 && <p class="notice">No words are available for this level yet. Try another level while we add content.</p>}
+    <p class="demo-note">{levelWords.length} demo words available at this level. Your progress is saved on this device.</p>
   </div>
   <script>
     import { progressStore } from '../../../../services/progress';
+    import { isGameMode, isValidQuestion } from '../../../../game/vocabulary';
     document.querySelectorAll<HTMLElement>('[data-progress]').forEach(element => {
       const [language, level, topic] = element.dataset.progress!.split(':');
       const saved = progressStore.get({ language, level, topic });
       if (!saved || typeof saved !== 'object' || !('completed' in saved) || !('total' in saved) || !('score' in saved)) return;
+      // A historical round may include words no longer available at this level.
+      if (!('mode' in saved) || !isGameMode(saved.mode)) return;
+      const stored = progressStore.get({ language, level, topic, mode: saved.mode });
+      const wordIds = new Set(element.dataset.wordIds?.split(','));
+      if (!stored || typeof stored !== 'object' || !('session' in stored) || !stored.session || typeof stored.session !== 'object' || !('questions' in stored.session)) return;
+      const questions = stored.session.questions;
+      if (!Array.isArray(questions) || !questions.length || !questions.every(question => isValidQuestion(question) && wordIds.has(question.id))) return;
       const { completed, total, score } = saved;
       if (typeof completed !== 'number' || typeof total !== 'number' || typeof score !== 'number' || ![completed, total, score].every(Number.isInteger) || total <= 0 || completed < 0 || completed > total || score < 0 || score > completed) return;
       const label = element.querySelector<HTMLElement>('[data-progress-label]');

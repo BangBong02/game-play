@@ -10,10 +10,11 @@ interface Props {
   detail?: string;
   variant?: 'level' | 'topic' | 'skill';
   progressKey?: string;
+  wordIds?: string[];
   action?: string;
   compact?: boolean;
 }
-const { name, description, icon, href, subtitle, detail, color = 'green', variant = 'topic', progressKey, action, compact = false } = Astro.props;
+const { name, description, icon, href, subtitle, detail, color = 'green', variant = 'topic', progressKey, wordIds, action, compact = false } = Astro.props;
 const Tag = href ? 'a' : 'article';
 ---
 <Tag href={href} class:list={['learning-card', color, variant, { unavailable: !href }]}>
@@ -30,7 +31,7 @@ const Tag = href ? 'a' : 'article';
     <h3>{name}</h3>
     {!compact && <p>{description}</p>}
     {href && <>
-      {progressKey && <div class="topic-progress" data-progress={progressKey} hidden><span data-progress-label></span><progress max="1" value="0" aria-label={`${name} progress`}></progress></div>}
+      {progressKey && <div class="topic-progress" data-progress={progressKey} data-word-ids={wordIds?.join(',')} hidden><span data-progress-label></span><progress max="1" value="0" aria-label={`${name} progress`}></progress></div>}
       <span class="topic-action" data-topic-action={progressKey}><span data-action-label>{action || (variant === 'skill' ? 'Play now' : 'Play')}</span><span aria-hidden="true">→</span></span>
     </>}
   </>}

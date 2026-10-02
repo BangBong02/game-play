@@ -10,6 +10,7 @@ export interface Word {
   imageUrl?: string;
   imageAlt?: string;
   audioUrl?: string;
+  visual?: boolean;
   topics: string[];
 }
 

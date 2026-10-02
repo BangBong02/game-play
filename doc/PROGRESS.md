@@ -8,7 +8,7 @@ Cập nhật gần nhất: **2026-10-02** (Asia/Bangkok).
 | --- | --- | --- |
 | 0 — Base và game demo | Hoàn thành | Astro/React/TypeScript, routing theo data, Multiple Choice, localStorage |
 | 1 — Astro content và SEO | Hoàn thành | HTML vocabulary, Content Collections local, bài viết Astro, game island |
-| 2 — UX và nội dung local | Đang thực hiện | UI/UX đã cập nhật; chờ người dùng review và xác nhận nguồn dataset/rank |
+| 2 — UX và nội dung local | Đang thực hiện | UI/UX và data layer cho level thật đã cập nhật; chưa nhập Easy 300, cần xác nhận nguồn/rank |
 | 3 — Vocabulary Game Engine v1 | Hoàn thành | 4 mode, session/scoring chung, SVG local, progress v2 và migration v1; tests/build/browser pass |
 | 4 — Phát hành static | Hoàn thành | Worker game-play-vn trong account maotuankiet77; GitHub main tự test/build/deploy, SEO/404 và game public pass |
 
@@ -193,6 +193,29 @@ Validation đã xác nhận:
 
 Phase 2 vẫn đang thực hiện, chưa mở rộng dataset/rank. Tiếp theo là người dùng review progress UX và xác nhận nguồn/rank thật; bản sửa này chưa commit/push/deploy.
 
+### 2026-10-02 — Chuẩn bị data architecture cho level thật
+
+Tiếp tục từ working tree sạch tại `b6cbee2`; giữ Astro content/SEO, React engine, bốn mode và localStorage. Không rewrite, thêm dependency, backend/PixiJS/audio hoặc import từ thật.
+
+- Giữ level config hiện có, thêm `getLevelRankRange` và progression `cumulative`/`new-only`. Repository lọc language/level/topic, mặc định cumulative; `new-only` lấy 1–300, 301–1.200, 1.201–3.000, chỉ có ở data layer.
+- Word giữ ID số và fields hiện có, thêm `visual?: boolean`; metadata/image/audio vẫn tùy chọn. `topics[]` hỗ trợ nhiều topic; `chicken` thuộc Animals và Food nhưng không bị duplicate trong dataset.
+- `game/eligibility.ts` tập trung điều kiện tham gia game ngoài React. Text cần word/meaning; Image → Word cần SVG local có alt và không `visual: false`. Image-match cần thêm `visual: true`; listening cần audioUrl, chỉ chuẩn bị helper, chưa có game mới. Generator dùng helper và distractor cùng pool đã lọc level.
+- Điều chỉnh rank của 20 từ demo qua ngưỡng 300 và 1.200. Rank vẫn minh họa, chưa phải tần suất nghiên cứu. Counts từ repository: Easy 11 từ duy nhất (Animals 6/Food 6/Colors 0), Medium 18 (9/7/3), Hard 20 (10/7/4). Tổng topic có thể lớn hơn tổng từ duy nhất do multiple topics.
+- Known topic rỗng có HTML thông báo, link quay lại, không tạo game island/session. Topic list tiếp tục Coming soon cho topic rỗng. Count/note lấy từ data đã lọc; topic card kiểm tra IDs của round đã lưu trước khi hiện summary để ẩn progress chứa từ vượt level mới.
+- Giữ key/storage version hiện có; engine đã kiểm tra round theo bank hiện tại và bỏ qua round không còn hợp lệ. Không xóa dữ liệu lưu; tests xác nhận round mới vẫn tạo được sau thay đổi rank.
+
+Validation:
+
+- `npm test`: 22/22 pass, giữ 15 tests cũ và thêm 7 tests cho ranges/new-only, demo counts/language/topic, multiple topics, eligibility, bốn mode với targets/distractors đã lọc, empty result và saved round sau thay đổi rank.
+- `npm run build` với SITE_URL production: 34 trang static, Astro/TypeScript 0 errors/warnings/hints. Project chưa có script lint; `git diff --check` pass.
+- HTTP preview `http://127.0.0.1:4323`: 33 HTML routes trả 200 và khớp build; canonical đúng. Tám topic có data giữ một H1, bảng từ đúng tập level/topic và một island; mười topic rỗng không có island/table/Play anchor. Ba bài viết có HTML thật, không React island; 20 SVG trả 200.
+- Chrome Easy: counts 11 tổng/Animals 6/Food 6, Colors Coming soon. Animals không còn horse/duck/rabbit/elephant trong HTML hoặc round; progress cũ 2/10 được ẩn. Word → Meaning hoàn thành 6/6 (100%), card cập nhật 6/6 correct.
+- Chrome Medium: tổng 18, Animals 9/Food 7/Colors 3; Colors có red/blue/green, không yellow. Meaning → Word hoàn thành 3/3 (100%); topic nhỏ vẫn đủ bốn đáp án nhờ fallback cùng level. Reload giữ prompt, options, feedback và progress sau câu đầu.
+- Chrome Hard: tổng 20, Animals 10/Food 7/Colors 4. Mobile override 390×844: Image → Word hoàn thành 4/4 (100%), SVG tải được; Type the Word 3/4 (75%), kiểm tra đúng/sai và chữ hoa/khoảng trắng bằng Enter. Reload giữ result; Play again reset input/progress. Không tràn ngang ở màn chơi đã kiểm tra; đã reset viewport.
+- Chrome direct URL Easy Colors hiển thị empty state thân thiện, không có mode/button chơi. Console trên tab kiểm tra sau build hoàn tất không error/warning.
+
+README/PHASES cập nhật API, schema, eligibility, counts và cách chuẩn bị import. Phase 2 vẫn đang thực hiện; bước tiếp theo là xác nhận nguồn/licence và kiểm tra dữ liệu Easy 300 theo từng phần, chưa tự nhập. Không commit/push/deploy; giữ HEAD/tag cũ.
+
 ## Cách cập nhật
 
 Sau mỗi task:
@@ -202,4 +225,4 @@ Sau mỗi task:
 3. Cập nhật ngày gần nhất. Chỉ đổi PHASES khi phạm vi hoặc tiêu chí thay đổi.
 4. Cập nhật README khi cách chạy hoặc kiến trúc thay đổi; tránh chép lại toàn bộ progress.
 
-Việc tiếp theo hiện tại: người dùng review UI/UX mới và tự commit; thống nhất dataset/rank thật trước khi mở rộng nội dung Phase 2.
+Việc tiếp theo hiện tại: người dùng review và tự commit; xác nhận nguồn/licence/rank cho Easy 300 trước khi nhập nội dung Phase 2.

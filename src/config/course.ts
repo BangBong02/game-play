@@ -7,6 +7,15 @@ export const levels = [
 ] as const;
 
 export type LevelId = typeof levels[number]['id'];
+export type Progression = 'cumulative' | 'new-only';
+
+export function getLevelRankRange(level: LevelId, progression: Progression = 'cumulative') {
+  const index = levels.findIndex(item => item.id === level);
+  return {
+    minRank: progression === 'new-only' && index > 0 ? levels[index - 1].maxRank + 1 : 1,
+    maxRank: levels[index].maxRank,
+  };
+}
 
 export const skills = [
   { id: 'vocabulary', name: 'Vocabulary', icon: '🧩', description: 'Make new words stick, one game at a time.', available: true },
@@ -16,8 +25,9 @@ export const skills = [
   { id: 'writing', name: 'Writing', icon: '💬', description: 'Turn your thoughts into words.', available: false },
 ];
 
-export function wordBelongsToLevel(rank: number, level: LevelId): boolean {
-  return Number.isInteger(rank) && rank > 0 && rank <= levels.find(item => item.id === level)!.maxRank;
+export function wordBelongsToLevel(rank: number, level: LevelId, progression: Progression = 'cumulative'): boolean {
+  const { minRank, maxRank } = getLevelRankRange(level, progression);
+  return Number.isInteger(rank) && rank >= minRank && rank <= maxRank;
 }
 
 export function coursePath(language: string, ...segments: string[]): string {

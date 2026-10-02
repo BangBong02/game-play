@@ -1,9 +1,10 @@
 ﻿import assert from 'node:assert/strict';
 import { existsSync } from 'node:fs';
 import test from 'node:test';
-import { wordBelongsToLevel } from '../src/config/course.ts';
-import { words as dataset } from '../src/data/content.ts';
-import { filterWords } from '../src/repositories/content.ts';
+import { getLevelRankRange, levels, wordBelongsToLevel } from '../src/config/course.ts';
+import { topics, words as dataset } from '../src/data/content.ts';
+import { filterWords, wordRepository } from '../src/repositories/content.ts';
+import { isWordEligible } from '../src/game/eligibility.ts';
 import { advanceGame, createSession, gameModes, generateDistractors, generateQuestions, getScore, getStats, isCorrectAnswer, isValidGameState, isValidQuestion, normalizeAnswer, type ChoiceQuestion, type GameState, type SessionConfig } from '../src/game/vocabulary.ts';
 import { createSavedProgress, progressStore, readStoredSession } from '../src/services/progress.ts';
 import type { Word } from '../src/types/content.ts';
@@ -46,6 +47,124 @@ test('shared data filters language, level and topic before generating questions'
   assert.equal(filterWords(sample, 'en', 'hard', 'animals').length, 7);
   assert.equal(filterWords(sample, 'en', 'easy').length, 6);
   assert.equal(filterWords(sample, 'fr', 'easy', 'animals').length, 1);
+});
+
+test('new-only ranges include their boundaries, exclude earlier words and partition cumulative levels', async () => {
+  const ranges = [[1, 300], [301, 1200], [1201, 3000]];
+  const counts = [11, 7, 2];
+  const accumulated: Word[] = [];
+  for (const [index, level] of levels.entries()) {
+    const [minRank, maxRank] = ranges[index];
+    assert.deepEqual(getLevelRankRange(level.id), { minRank: 1, maxRank });
+    assert.deepEqual(getLevelRankRange(level.id, 'new-only'), { minRank, maxRank });
+    for (const rank of [minRank, maxRank]) assert.equal(wordBelongsToLevel(rank, level.id, 'new-only'), true);
+    for (const rank of [minRank - 1, maxRank + 1, -1, NaN, Infinity, 1.5]) assert.equal(wordBelongsToLevel(rank, level.id, 'new-only'), false);
+    const added = await wordRepository.list('en', level.id, undefined, 'new-only');
+    assert.equal(added.length, counts[index]);
+    assert.ok(added.every(word => word.rank >= minRank && word.rank <= maxRank));
+    accumulated.push(...added);
+    assert.deepEqual(accumulated.map(word => word.id).sort((a, b) => a - b), filterWords(dataset, 'en', level.id).map(word => word.id).sort((a, b) => a - b));
+  }
+});
+
+test('demo data and topic counts use the selected language and actual level filter', async () => {
+  const expected = [
+    { total: 11, animals: 6, food: 6, colors: 0 },
+    { total: 18, animals: 9, food: 7, colors: 3 },
+    { total: 20, animals: 10, food: 7, colors: 4 },
+  ];
+  for (const [index, level] of levels.entries()) {
+    const pool = await wordRepository.list('en', level.id);
+    assert.equal(pool.length, expected[index].total);
+    assert.ok(pool.every(word => word.rank >= 1 && word.rank <= level.maxRank));
+    assert.equal(new Set(pool.map(word => word.id)).size, pool.length);
+    for (const topic of topics) {
+      const filtered = await wordRepository.list('en', level.id, topic.id);
+      assert.deepEqual(filtered, pool.filter(word => word.topics.includes(topic.id)));
+      assert.equal(filtered.length, expected[index][topic.id as 'animals' | 'food' | 'colors'] ?? 0);
+    }
+  }
+  assert.deepEqual(await wordRepository.list('fr', 'hard'), []);
+});
+
+test('a word can belong to multiple topics without duplication or mutation', () => {
+  const snapshot = JSON.stringify(dataset);
+  const chicken = dataset.find(word => word.word === 'chicken')!;
+  for (const topic of ['animals', 'food']) {
+    const filtered = filterWords(dataset, 'en', 'easy', topic);
+    assert.equal(filtered.filter(word => word.id === chicken.id).length, 1);
+  }
+  assert.equal(filterWords(dataset, 'en', 'easy').filter(word => word.id === chicken.id).length, 1);
+  assert.equal(JSON.stringify(dataset), snapshot);
+});
+
+test('eligibility separates text, image, visual matching and future listening requirements', () => {
+  const textOnly = { ...words[0], imageUrl: undefined, audioUrl: undefined, visual: false };
+  for (const mode of ['word-to-meaning', 'meaning-to-word', 'type-the-word'] as const) {
+    assert.equal(isWordEligible(textOnly, mode), true);
+    assert.equal(isWordEligible({ ...textOnly, word: ' ' }, mode), false);
+    assert.equal(isWordEligible({ ...textOnly, meaning: ' ' }, mode), false);
+  }
+  assert.equal(isWordEligible(textOnly, 'image-to-word'), false);
+  assert.equal(isWordEligible(words[0], 'image-to-word'), true);
+  assert.equal(isWordEligible({ ...words[0], visual: false }, 'image-to-word'), false);
+  assert.equal(isWordEligible({ ...words[0], imageAlt: ' ' }, 'image-to-word'), false);
+  assert.equal(isWordEligible(words[0], 'image-match'), false);
+  assert.equal(isWordEligible({ ...words[0], visual: true }, 'image-match'), true);
+  assert.equal(isWordEligible({ ...textOnly, visual: true }, 'image-match'), false);
+  assert.equal(isWordEligible({ ...words[0], visual: false }, 'image-match'), false);
+  assert.equal(isWordEligible(textOnly, 'listening'), false);
+  assert.equal(isWordEligible({ ...textOnly, audioUrl: ' ' }, 'listening'), false);
+  assert.equal(isWordEligible({ ...textOnly, audioUrl: '/audio/dog.mp3' }, 'listening'), true);
+  const mixed = [textOnly, ...words.slice(1)];
+  assert.equal(generateQuestions(mixed, 'word-to-meaning').length, 5);
+  assert.equal(generateQuestions(mixed, 'image-to-word').length, 4);
+});
+
+test('all four modes use filtered targets and distractors across levels, including small topics', () => {
+  for (const level of levels) {
+    const pool = filterWords(dataset, 'en', level.id);
+    for (const topic of topics) {
+      const targets = filterWords(dataset, 'en', level.id, topic.id);
+      for (const mode of gameModes) {
+        const bank = generateQuestions(targets, mode.id, pool, random);
+        assert.equal(bank.length, targets.length);
+        for (const question of bank) {
+          assert.ok(targets.some(word => `en-${word.id}` === question.id));
+          if (question.kind === 'choice') {
+            const field = mode.id === 'word-to-meaning' ? 'meaning' : 'word';
+            assert.ok(question.options.every(option => pool.some(word => word[field] === option)));
+          }
+        }
+        assert.equal(createSession({ ...config, level: level.id, topic: topic.id, mode: mode.id }, bank)?.questions.length ?? 0, Math.min(5, targets.length));
+      }
+    }
+  }
+});
+
+test('empty level/topic results produce no playable sessions', async () => {
+  const empty = await wordRepository.list('en', 'easy', 'colors');
+  assert.deepEqual(empty, []);
+  assert.deepEqual(filterWords([], 'en', 'hard'), []);
+  assert.deepEqual(await wordRepository.list('en', 'easy', 'unknown'), []);
+  for (const mode of gameModes) {
+    const bank = generateQuestions(empty, mode.id, dataset);
+    assert.deepEqual(bank, []);
+    assert.equal(createSession({ ...config, mode: mode.id }, bank), null);
+  }
+});
+
+test('saved rounds reject words moved outside their level without deleting stored progress', () => {
+  const values = storage();
+  const session = createSession(config, questions, random)!;
+  progressStore.save(createSavedProgress(session));
+  const before = [...values];
+  const revised = words.map(word => ({ ...word, rank: word.id === 1 ? 400 : word.rank }));
+  const filtered = filterWords(revised, 'en', 'easy', 'animals');
+  const bank = generateQuestions(filtered, config.mode, filtered, random);
+  assert.equal(readStoredSession(progressStore.get(config), config, config.mode, bank), null);
+  assert.deepEqual([...values], before);
+  assert.ok(createSession(config, bank));
 });
 
 test('all choice modes contain four unique answers with exactly one correct answer', () => {

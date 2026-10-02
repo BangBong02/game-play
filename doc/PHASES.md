@@ -47,6 +47,13 @@ Phạm vi nội dung còn cần xác nhận:
 - Mở rộng topic/từ vựng và bài viết từng phần, không tạo hàng nghìn từ một lần.
 - Sửa các vấn đề UX/accessibility được xác nhận qua sử dụng thực tế.
 
+Phạm vi chuẩn bị data đã được yêu cầu trước khi nhập Easy 300:
+
+- Centralize range cumulative và `new-only`; repository lọc language/level/topic cho cả HTML và game.
+- Schema Word có metadata tùy chọn, nhiều topic và `visual`; helper eligibility ngoài React cho mode hiện tại và quy tắc image-match/listening tương lai.
+- Giữ 20 từ demo, phân rank qua các ngưỡng để test; count theo data đã lọc và HTML empty state không tạo game session.
+- Chỉ chuẩn bị data layer và tests, chưa nhập 300/1.200/3.000 từ hay triển khai image-match/audio/backend.
+
 Hoàn thành khi UI/UX được người dùng review, nội dung đã chọn được kiểm tra đúng level/topic, và flow desktop/mobile không có regression. Quy mô dataset và nội dung cần được thống nhất trước khi mở rộng.
 
 ## Phase 3 — Vocabulary Game Engine v1

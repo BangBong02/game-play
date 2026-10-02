@@ -1,5 +1,7 @@
 import type { LevelId } from '../config/course';
 import type { Word } from '../types/content';
+import { isLocalImage, isWordEligible } from './eligibility.ts';
+export { isLocalImage } from './eligibility.ts';
 
 export const gameModes = [
   { id: 'word-to-meaning', name: 'Word → Meaning', description: 'Word meaning · Choose the Vietnamese meaning.', icon: 'Aa' },
@@ -20,7 +22,6 @@ export interface VocabularySession { config: SessionConfig; questions: Question[
 export type GameAction = { type: 'answer'; answer: string } | { type: 'next' } | { type: 'restart' };
 
 export const normalizeAnswer = (answer: string) => answer.trim().normalize('NFC').toLowerCase();
-export const isLocalImage = (url: string) => /^\/images\/vocabulary\/[a-z0-9-]+\.svg$/.test(url);
 
 export function shuffle<T>(items: readonly T[], random: () => number = Math.random): T[] {
   const result = [...items];
@@ -36,7 +37,7 @@ export function generateDistractors(word: Word, answerField: 'word' | 'meaning',
   const spelling = normalizeAnswer(word.word);
   const meaning = normalizeAnswer(word.meaning);
   const seen = new Set([normalizeAnswer(word[answerField])]);
-  const candidates = (source: Word[]) => source.filter(candidate => candidate.language === word.language && normalizeAnswer(candidate.word) !== spelling && normalizeAnswer(candidate.meaning) !== meaning);
+  const candidates = (source: Word[]) => source.filter(candidate => isWordEligible(candidate, 'word-to-meaning') && candidate.language === word.language && normalizeAnswer(candidate.word) !== spelling && normalizeAnswer(candidate.meaning) !== meaning);
   const wrong: string[] = [];
   for (const candidate of [...shuffle(candidates(words), random), ...shuffle(candidates(pool), random)]) {
     const answer = candidate[answerField];
@@ -56,8 +57,7 @@ export function generateQuestions(words: Word[], mode: GameMode, pool: Word[] = 
   for (const word of words) {
     const id = `${word.language}-${word.id}`;
     const spelling = `${word.language}:${normalizeAnswer(word.word)}`;
-    if (ids.has(id) || spellings.has(spelling) || !word.word.trim() || !word.meaning.trim()) continue;
-    if (mode === 'image-to-word' && (!word.imageUrl || !isLocalImage(word.imageUrl) || !word.imageAlt?.trim())) continue;
+    if (ids.has(id) || spellings.has(spelling) || !isWordEligible(word, mode)) continue;
     const reverse = mode !== 'word-to-meaning';
     const correctAnswer = reverse ? word.word : word.meaning;
     const content = { id, prompt: mode === 'image-to-word' ? 'Which word matches this picture?' : reverse ? word.meaning : word.word, promptLanguage: reverse ? 'vi' : word.language, answerLanguage: reverse ? word.language : 'vi', correctAnswer };

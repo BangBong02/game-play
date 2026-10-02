@@ -13,7 +13,7 @@ export async function getStaticPaths() {
           const topicWords = await wordRepository.list(language.id, level.id, topic.id);
           const pool = await wordRepository.list(language.id, level.id);
           const banks = Object.fromEntries(gameModes.map(mode => [mode.id, generateQuestions(topicWords, mode.id, pool)])) as Record<GameMode, Question[]>;
-          if (topicWords.length) routes.push({ params: { language: language.id, level: level.id, skill: skill.id, topic: topic.id }, props: { language, level, skill, topic, topicWords, banks } });
+          routes.push({ params: { language: language.id, level: level.id, skill: skill.id, topic: topic.id }, props: { language, level, skill, topic, topicWords, banks } });
         }
       }
     }
@@ -22,7 +22,10 @@ export async function getStaticPaths() {
 }
 const { language, level, skill, topic, topicWords, banks } = Astro.props;
 const backHref = coursePath(language.id, level.id, skill.id);
-const description = `Learn ${topicWords.length} ${language.name} words about ${topic.name.toLowerCase()} with Vietnamese meanings, then practice with four vocabulary games.`;
+const hasWords = topicWords.length > 0;
+const description = hasWords
+  ? `Learn ${topicWords.length} ${language.name} words about ${topic.name.toLowerCase()} with Vietnamese meanings, then practice with four vocabulary games.`
+  : `${topic.name} vocabulary for ${level.name} ${language.name}. Words for this level are coming soon. Explore other vocabulary topics while you wait.`;
 ---
 <BaseLayout title={`${topic.name} vocabulary — ${level.name} ${language.name}`} description={description} language={language.id}>
   <div class="page-container game-page">
@@ -30,22 +33,24 @@ const description = `Learn ${topicWords.length} ${language.name} words about ${t
     <div class="game-heading"><a class="back-link" href={backHref}>← Back to topics</a><span class:list={['pill', topic.color]}><span aria-hidden="true">{topic.icon}</span> {topic.name} · {level.name}</span></div>
     <header class="page-heading reading-width topic-header">
       <h1>{topic.name} vocabulary<span class="heading-dot">.</span></h1>
-      <p>{topic.description} Learn {topicWords.length} {language.name} words and their Vietnamese meanings, then check what you remember.</p>
-      <div class="article-links"><a class="primary-button" href="#practice">Play the game ↓</a><a class="secondary-button" href="#word-list">Review the words</a></div>
+      <p>{topic.description} {hasWords && `Learn ${topicWords.length} ${language.name} words and their Vietnamese meanings, then check what you remember.`}</p>
+      {hasWords && <div class="article-links"><a class="primary-button" href="#practice">Play the game ↓</a><a class="secondary-button" href="#word-list">Review the words</a></div>}
     </header>
-    <section id="practice" class="reading-width practice-section" aria-labelledby="practice-heading">
+    {hasWords ? <section id="practice" class="reading-width practice-section" aria-labelledby="practice-heading">
       <div class="practice-intro"><span class:list={['pill', level.color]}>{level.name} · {skill.name}</span><h2 id="practice-heading">Choose how to practice</h2><p>One topic, four ways to learn. Answer, check, then choose Next. Your round is saved on this device.</p></div>
       <GameSession client:visible banks={banks} topicName={topic.name} levelName={level.name} progressKey={{ language: language.id, level: level.id, topic: topic.id }} />
       <noscript><p class="notice">Enable JavaScript to play. You can still read the full word list below.</p></noscript>
-    </section>
+    </section> : <section class="reading-width practice-section" aria-labelledby="empty-heading"><h2 id="empty-heading">No words are available for this level yet.</h2><p>Choose another topic to keep learning. New words will appear here as we add content.</p><a class="primary-button" href={backHref}>Explore vocabulary topics →</a></section>}
     <section id="word-list" class="prose reading-width vocabulary-content" aria-labelledby="word-list-heading">
       <h2 id="word-list-heading">{topic.name} word list</h2>
+      {hasWords ? <>
       <p>Read each word and its meaning. Before your next round, cover the meanings and try recalling them yourself.</p>
       <table class="word-table">
         <caption>{topicWords.length} {language.name} vocabulary words about {topic.name.toLowerCase()}</caption>
         <thead><tr><th scope="col">{language.name} word</th><th scope="col">Vietnamese meaning</th></tr></thead>
         <tbody>{topicWords.map(word => <tr><th scope="row" lang={language.id}>{word.word}</th><td lang="vi">{word.meaning}</td></tr>)}</tbody>
       </table>
+      </> : <p>The word list will be available when this topic has words for {level.name}.</p>}
       <h2>Keep exploring</h2>
       <p>Try another vocabulary topic or read a learning guide before your next game.</p>
       <div class="article-links"><a href={backHref}>More vocabulary topics →</a><a href={coursePath(language.id, 'learn', 'guides')}>Learning guides →</a></div>
