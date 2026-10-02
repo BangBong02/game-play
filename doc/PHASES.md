@@ -33,14 +33,20 @@ Hoàn thành khi HTML build chứa nội dung thật, bài viết không có Rea
 
 ## Phase 2 — Xác nhận UX và mở rộng nội dung local
 
-Phạm vi dự kiến:
+Phạm vi UI/UX đã được yêu cầu:
+
+- Làm mới giao diện bằng CSS thuần: palette thân thiện, card level/topic/mode rõ ràng, số lượng từ mục tiêu nổi bật.
+- Rút gọn màn chơi, đáp án lớn và feedback Correct!/Not quite có text/icon; giữ session, scoring, resume và HTML SEO hiện có.
+- Hiển thị progress trên topic card và Play/Continue/Play again theo lượt đã lưu; kiểm tra keyboard, desktop/mobile và reload.
+
+Phạm vi nội dung còn cần xác nhận:
 
 - Người dùng review demo, xác nhận learning flow và cấu trúc nội dung.
 - Xác nhận nguồn dataset và rank thật; thay rank minh họa trước khi công bố quy mô từ vựng thực tế.
 - Mở rộng topic/từ vựng và bài viết từng phần, không tạo hàng nghìn từ một lần.
 - Sửa các vấn đề UX/accessibility được xác nhận qua sử dụng thực tế.
 
-Hoàn thành khi nội dung đã chọn được kiểm tra, đúng level/topic, và flow desktop/mobile không có regression. Quy mô dataset và nội dung cần được thống nhất khi bắt đầu phase.
+Hoàn thành khi UI/UX được người dùng review, nội dung đã chọn được kiểm tra đúng level/topic, và flow desktop/mobile không có regression. Quy mô dataset và nội dung cần được thống nhất trước khi mở rộng.
 
 ## Phase 3 — Vocabulary Game Engine v1
 

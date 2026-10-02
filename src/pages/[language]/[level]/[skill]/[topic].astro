@@ -28,15 +28,14 @@ const description = `Learn ${topicWords.length} ${language.name} words about ${t
   <div class="page-container game-page">
     <nav class="breadcrumbs" aria-label="Breadcrumb"><a href={coursePath(language.id)}>{language.name}</a><span aria-hidden="true">/</span><a href={coursePath(language.id, level.id)}>{level.name}</a><span aria-hidden="true">/</span><a href={backHref}>{skill.name}</a><span aria-hidden="true">/</span><span aria-current="page">{topic.name}</span></nav>
     <div class="game-heading"><a class="back-link" href={backHref}>← Back to topics</a><span class:list={['pill', topic.color]}><span aria-hidden="true">{topic.icon}</span> {topic.name} · {level.name}</span></div>
-    <header class="page-heading reading-width">
+    <header class="page-heading reading-width topic-header">
       <h1>{topic.name} vocabulary<span class="heading-dot">.</span></h1>
       <p>{topic.description} Learn {topicWords.length} {language.name} words and their Vietnamese meanings, then check what you remember.</p>
       <div class="article-links"><a class="primary-button" href="#practice">Play the game ↓</a><a class="secondary-button" href="#word-list">Review the words</a></div>
     </header>
     <section id="practice" class="reading-width practice-section" aria-labelledby="practice-heading">
-      <h2 id="practice-heading">Practice what you remember</h2>
-      <p>Choose Word → Meaning, Meaning → Word, Image → Word or Type the Word. Answer each question, read the feedback, then select Next word. Each game saves its round on this device.</p>
-      <GameSession client:visible banks={banks} progressKey={{ language: language.id, level: level.id, topic: topic.id }} />
+      <div class="practice-intro"><h2 id="practice-heading">Choose a game</h2><p>Pick a game. Answer, check, then choose Next. Your round is saved on this device.</p></div>
+      <GameSession client:visible banks={banks} topicName={topic.name} progressKey={{ language: language.id, level: level.id, topic: topic.id }} />
       <noscript><p class="notice">Enable JavaScript to play. You can still read the full word list below.</p></noscript>
     </section>
     <section id="word-list" class="prose reading-width vocabulary-content" aria-labelledby="word-list-heading">

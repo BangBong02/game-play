@@ -8,7 +8,7 @@ Cập nhật gần nhất: **2026-10-02** (Asia/Bangkok).
 | --- | --- | --- |
 | 0 — Base và game demo | Hoàn thành | Astro/React/TypeScript, routing theo data, Multiple Choice, localStorage |
 | 1 — Astro content và SEO | Hoàn thành | HTML vocabulary, Content Collections local, bài viết Astro, game island |
-| 2 — UX và nội dung local | Chưa bắt đầu | Chờ review demo và xác nhận nguồn dataset/rank |
+| 2 — UX và nội dung local | Đang thực hiện | UI/UX đã cập nhật; chờ người dùng review và xác nhận nguồn dataset/rank |
 | 3 — Vocabulary Game Engine v1 | Hoàn thành | 4 mode, session/scoring chung, SVG local, progress v2 và migration v1; tests/build/browser pass |
 | 4 — Phát hành static | Hoàn thành | Worker game-play-vn trong account maotuankiet77; GitHub main tự test/build/deploy, SEO/404 và game public pass |
 
@@ -149,6 +149,23 @@ Validation đã chạy trên code/build hiện tại:
 
 README đã cập nhật mô tả helper. Phase 3 vẫn hoàn thành; phạm vi phase không đổi. Thay đổi được chuẩn bị để commit/push theo yêu cầu; commit tương ứng xem trong Git history. Tiếp theo vẫn là review UX và xác nhận dataset/rank ở Phase 2, chưa tự triển khai.
 
+### 2026-10-02 — Làm mới UI/UX game học tiếng Anh
+
+Đã refactor giao diện trên code hiện có: palette xanh/cam/tím theo level, hero chữ minh họa bằng HTML/CSS, card level nổi bật mục tiêu 300/1.200/3.000 từ, skill Vocabulary có CTA rõ và skill chưa có nội dung giữ Coming soon. Topic card gọn hơn, có progress và Play/Continue/Play again từ ProgressStore hiện có; card thư viện vẫn giữ mô tả bài học.
+
+Bốn mode có card lớn, icon và hướng dẫn ngắn. Màn chơi tập trung vào câu hỏi, số câu và score; nút đáp án lớn, correct/incorrect có text/icon, feedback Correct!/Not quite và result rõ ràng. Khi chơi, phần giới thiệu topic được thu gọn bằng CSS; Astro vẫn render H1, mô tả, hướng dẫn và bảng từ thật. Giữ engine/session/scoring, localStorage v1/v2 và React island; không thêm dependency, backend hoặc thay kiến trúc. Illustration plant hiện có được tái sử dụng, không sao chép UI/assets bên ngoài.
+
+Validation:
+
+- `npm test`: 15/15 pass. `npm run build` với SITE_URL production: 25 trang, Astro/TypeScript 0 errors/warnings/hints. `git diff --check` pass; project chưa có script lint riêng.
+- HTTP preview `http://127.0.0.1:4323`: 24 HTML routes trả 200 và khớp build; chín trang vocabulary giữ H1, bảng từ và một game island; ba bài viết không có React island; 20 SVG local trả 200.
+- Browser Colors: Word → Meaning 3/4 (75%), Meaning → Word 4/4 (100%), Image → Word 4/4 (100%), Type the Word 3/4 (75%). Kiểm tra đúng/sai, khóa answer, Next thủ công, feedback, result và score.
+- Keyboard: Tab/Enter cho navigation, selector và choice; typing xử lý input rỗng, hoa/thường, khoảng trắng, Backspace và Enter. Reload giữ câu/feedback/result; Play again reset input/progress.
+- Topic card cập nhật đúng 3/4 correct sau hoàn thành, 1/4 answered khi đang chơi, progress bar và CTA tương ứng. Navigation level → skill → topic, Back to games/topics và thư viện/bài viết hoạt động.
+- Responsive với viewport override 390×844, 768×1024 và 320×800: không cuộn ngang ở các màn đã kiểm tra; ảnh game tải được. Đã reset viewport sau kiểm tra; console không error/warning.
+
+Phase 2 đang thực hiện; chưa mở rộng dataset/rank. Theo yêu cầu, thay đổi để trong working tree cho người dùng tự commit, chưa push/deploy và không đổi tag `v0.1.0-base`. Bản Cloudflare hiện tại vẫn là bản đã phát hành trước task này.
+
 ## Cách cập nhật
 
 Sau mỗi task:
@@ -158,4 +175,4 @@ Sau mỗi task:
 3. Cập nhật ngày gần nhất. Chỉ đổi PHASES khi phạm vi hoặc tiêu chí thay đổi.
 4. Cập nhật README khi cách chạy hoặc kiến trúc thay đổi; tránh chép lại toàn bộ progress.
 
-Việc tiếp theo hiện tại: người dùng review UX và thống nhất dataset/rank thật. Chưa tự triển khai Phase 2.
+Việc tiếp theo hiện tại: người dùng review UI/UX mới và tự commit; thống nhất dataset/rank thật trước khi mở rộng nội dung Phase 2.

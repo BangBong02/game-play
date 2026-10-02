@@ -56,6 +56,8 @@ Medium/Hard dùng cùng cấu trúc. Animals có 10 câu, Food 6 câu, Colors 4 
 
 Trang topic có một H1, giới thiệu, hướng dẫn chơi và bảng từ/nghĩa render thành HTML bằng Astro từ cùng dataset mà generator dùng. JavaScript bị tắt vẫn đọc được nội dung; chỉ game cần JavaScript. Title/description riêng theo topic, canonical được thêm khi có `SITE_URL`.
 
+UI dùng CSS thuần với màu xanh/cam/tím theo level, card chọn game lớn và feedback có text/icon. Topic card hiển thị progress lượt gần nhất cùng Play/Continue/Play again; khi đang chơi, header thu gọn để tập trung vào câu hỏi, còn bảng từ vẫn ở bên dưới. Illustration chữ trên homepage dùng HTML/CSS và plant SVG có sẵn.
+
 ## Content Collections
 
 Ba collection `blog`, `grammar`, `guides` dùng Astro `file()` loader đọc JSON local. Schema kiểm tra title, description, language, draft và các section (heading, paragraphs, examples). Không CMS hay fetch API. Tham khảo [Astro Content Collections](https://docs.astro.build/en/guides/content-collections/).
@@ -139,11 +141,11 @@ Phase hiện tại chỉ có TypeScript/JSON local và localStorage. Repository 
 
 ## Bước tiếp theo
 
-1. Xác nhận UX demo và dataset/rank thật.
-2. Review bốn mode hiện có rồi mở rộng từ vựng theo topic từng phần.
+1. Review UI/UX mới trên desktop/mobile và bốn mode hiện có.
+2. Xác nhận dataset/rank thật rồi mở rộng từ vựng theo topic từng phần.
 3. Bổ sung blog/grammar/guides vào các collection sau khi xác nhận cấu trúc nội dung mẫu.
 
-Các bước này chưa được triển khai.
+Phần UI/UX đã cập nhật; nội dung/rank vẫn là demo. Trạng thái và validation chi tiết xem trong progress.
 
 ## Phase và tiến trình
 

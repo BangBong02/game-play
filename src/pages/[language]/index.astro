@@ -8,14 +8,16 @@ const { language } = Astro.props;
 <BaseLayout title={`${language.name} games — Learn through play`} language={language.id}>
   <div class="page-container home-page">
     <section class="hero" aria-labelledby="hero-title">
-      <span class="eyebrow"><span class="live-dot"></span> YOUR NEXT LITTLE ADVENTURE</span>
-      <h1 id="hero-title">Big learning.<br /><span>Little games.</span><svg class="hero-spark" viewBox="0 0 55 55" aria-hidden="true"><path d="M27 3V17M27 38V52M3 27H17M38 27H52M10 10L20 20M35 35L45 45M10 45L20 35M35 20L45 10" stroke="currentColor" stroke-width="4" stroke-linecap="round" /></svg></h1>
-      <p>A playful way to make {language.name} part of your everyday.<br class="desktop-break" /> Pick your level. Find your rhythm. Let curiosity do the rest.</p>
-      <div class="hero-notes"><span><span aria-hidden="true">✓</span> Bite-sized games</span><span><span aria-hidden="true">✓</span> Your own pace</span><span><span aria-hidden="true">✓</span> No pressure</span></div>
-      <span class="hero-doodle doodle-left" aria-hidden="true">a<span>↗</span></span><span class="hero-doodle doodle-right" aria-hidden="true">hello<span>✦</span></span>
+      <div class="hero-copy">
+        <span class="eyebrow">LITTLE GAMES. BIG DISCOVERIES.</span>
+        <h1 id="hero-title">Learn {language.name}<br /><span>through games.</span></h1>
+        <p>A playful way to make {language.name} part of your everyday. Pick your level and learn a few new words, one quick game at a time.</p>
+        <div class="hero-notes"><span>4 ways to play</span><span>No sign-up</span><span>Your own pace</span></div>
+      </div>
+      <div class="hero-blocks" aria-hidden="true"><span class="letter-block block-a">a<span>● ●</span></span><span class="letter-block block-b">b</span><span class="letter-block block-c">c</span><span class="block-spark">✦</span><span class="block-caption">a little play, every day</span></div>
     </section>
     <section aria-labelledby="levels-title">
-      <div class="section-heading"><div><span class="eyebrow">A PLACE TO START</span><h2 id="levels-title">Choose your adventure</h2></div><span class="section-aside">Every great journey starts with a word.</span></div>
+      <div class="section-heading"><div><h2 id="levels-title">Choose your level</h2></div><span class="section-aside">Pick a starting point. Let's play!</span></div>
       <div class="level-grid">{levels.map(level => <LearningCard {...level} href={coursePath(language.id, level.id)} variant="level" />)}</div>
       <p class="demo-note"><span aria-hidden="true">✧</span> A small taste of what's growing. Try 20 demo words across 3 topics.</p>
     </section>
