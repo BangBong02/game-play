@@ -42,15 +42,18 @@ Phạm vi dự kiến:
 
 Hoàn thành khi nội dung đã chọn được kiểm tra, đúng level/topic, và flow desktop/mobile không có regression. Quy mô dataset và nội dung cần được thống nhất khi bắt đầu phase.
 
-## Phase 3 — Thêm game theo nhu cầu
+## Phase 3 — Vocabulary Game Engine v1
 
-Phạm vi dự kiến:
+Phạm vi đã được yêu cầu:
 
-- Chọn một game tiếp theo sau khi đánh giá demo hiện tại.
-- Tái sử dụng dataset và progress khi phù hợp; tách logic game khỏi UI.
-- Kiểm tra scoring, hoàn thành lượt và reload trước khi mở rộng nội dung.
+- Bốn mode: Word → Meaning, Meaning → Word, Image → Word, Type the Word.
+- Session chung với config, question list, answers/index; scoring/result/restart và feedback rõ ràng, Next thủ công.
+- Generator thuần, shuffle, distractor ưu tiên topic và fallback dataset cùng level; typing bỏ qua hoa/thường và khoảng trắng đầu/cuối.
+- Chọn game ngay trên trang topic; giữ HTML SEO và React island.
+- Progress v2 riêng theo mode, giữ kết quả gần nhất và đọc/migrate round v1 mà không xóa dữ liệu cũ.
+- Dataset demo 20 từ, SVG local; không thêm dependency/backend/timer/audio/XP.
 
-Hoàn thành khi game được chọn hoạt động với data độc lập và không làm hỏng game hiện tại. Chưa chọn game cụ thể; không mặc định thêm timer, audio hay hệ thống achievement.
+Hoàn thành khi unit tests, build, bốn flow browser desktop/mobile, reload và HTML SEO pass. Trạng thái và bằng chứng ghi trong PROGRESS.md. Phase 2 về nguồn/rank thật vẫn cần xác nhận riêng.
 
 ## Phase 4 — Phát hành static website
 

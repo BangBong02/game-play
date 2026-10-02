@@ -1,6 +1,6 @@
 # Lingoplay
 
-Base website học ngoại ngữ qua mini game. Bản đầu tập trung vào English → nghĩa tiếng Việt: 3 level, 6 topic và game Multiple Choice dùng 18 từ mẫu. Chưa có tài khoản, backend hoặc database thật.
+Website học ngoại ngữ qua mini game. Hiện có Vocabulary Game Engine v1: 3 level, 6 topic hiển thị (3 topic chơi được), 4 mode và 20 từ mẫu English/nghĩa tiếng Việt. Chưa có tài khoản, backend hoặc database thật.
 
 ## Chạy project
 
@@ -31,13 +31,14 @@ src/
   data/*.json               # Nội dung blog/grammar/guides local
   types/content.ts          # Word/Topic; URL ảnh và audio tùy chọn
   repositories/content.ts   # Interface async + implementation đọc local
-  game/multiple-choice.ts   # Generator, state transitions, scoring
+  game/vocabulary.ts        # 4 mode, generator, session, transitions, scoring
   components/               # Card/illustration Astro + React game/session
   services/progress.ts      # ProgressStore dùng localStorage
   layouts/BaseLayout.astro  # Header, footer, SEO
   pages/                    # Routing theo data với getStaticPaths
   styles/global.css         # Desktop/mobile, focus, reduced motion
 tests/game.test.ts           # Node test runner, không thêm framework test
+public/images/vocabulary/    # 20 SVG local cho Image → Word
 ```
 
 ## Demo flow
@@ -51,7 +52,7 @@ tests/game.test.ts           # Node test runner, không thêm framework test
 /en/easy/vocabulary/animals
 ```
 
-Medium/Hard dùng cùng cấu trúc. Animals có 10 câu, Food và Colors mỗi topic có 4 câu. Các skill khác và topic chưa có data hiển thị Coming soon; không tạo link chết.
+Medium/Hard dùng cùng cấu trúc. Animals có 10 câu, Food 6 câu, Colors 4 câu ở mỗi mode; round tối đa 10 câu. Các skill khác và topic chưa có data hiển thị Coming soon; không tạo link chết.
 
 Trang topic có một H1, giới thiệu, hướng dẫn chơi và bảng từ/nghĩa render thành HTML bằng Astro từ cùng dataset mà generator dùng. JavaScript bị tắt vẫn đọc được nội dung; chỉ game cần JavaScript. Title/description riêng theo topic, canonical được thêm khi có `SITE_URL`.
 
@@ -71,17 +72,24 @@ Mỗi collection có một bài mẫu để kiểm tra flow. Thêm entry vào JS
 
 ## Game & data
 
-Flow: **Astro page → repository → createQuestions → GameSession → MultipleChoiceGame**.
+Flow: **Astro page → repository → generateQuestions → GameSession → VocabularyGame → choice/typing renderer**.
 
-Game chỉ nhận `prompt`, `correctAnswer`, `options`; không biết ngôn ngữ, level, topic hay nguồn data. State transition và score là hàm thuần. Generator tạo 4 lựa chọn khác nhau, thứ tự ổn định để reload tiếp tục đúng câu. Cần ít nhất 4 nghĩa khác nhau để topic có thể chơi.
+Astro chuẩn bị question banks từ dataset lọc language/level/topic. React chọn mode và tạo session theo config `{ language, level, topic, mode, questionCount }`. Session giữ questions, index và answers; correct/incorrect/progress/percentage derive từ answers, không duplicate state. Generator, shuffle, transition và scoring độc lập UI, có thể truyền random cố định để test.
 
-`GameSession` đọc/lưu tiến độ qua `ProgressStore`, với key gồm language/level/topic và signature của câu hỏi. Lưu sau mỗi đáp án và khi Next; reload khôi phục lượt đang chơi hoặc kết quả. Data thay đổi thì bắt đầu lượt mới. JSON hỏng hoặc localStorage bị chặn không làm crash game. Play again reset lượt hiện tại.
+- **Word → Meaning:** chọn nghĩa tiếng Việt từ từ English.
+- **Meaning → Word:** chọn từ English từ nghĩa tiếng Việt.
+- **Image → Word:** chọn từ English từ SVG local có alt text.
+- **Type the Word:** nhập từ English từ nghĩa tiếng Việt; trim và bỏ qua hoa/thường.
+
+Choice generator ưu tiên distractor cùng topic, fallback pool cùng language/level và loại đáp án trùng/đồng nghĩa với đáp án đúng. Khi không đủ 4 lựa chọn hợp lệ, bỏ câu đó và disable mode nếu bank rỗng; typing vẫn chơi được với dataset nhỏ. Thứ tự câu hỏi và options được shuffle lúc bắt đầu rồi lưu nguyên round. Answer khóa sau submit; người dùng chọn Next thủ công. Layout feedback, score, progress, result và restart dùng chung.
+
+`ProgressStore` dùng key `lingoplay:v2:language:level:topic:mode`, kèm summary `:recent`. Lưu config/questions/state, timestamp và `lastResult`; reload kiểm tra data/schema trước khi khôi phục câu hoặc result. Mỗi mode có round riêng. Đọc progress v1 của Word → Meaning và chuyển sang v2 khi chơi tiếp, giữ nguyên key v1. Data đã thay đổi hoặc JSON hỏng bắt đầu lượt mới; storage bị chặn vẫn chơi được. Play again reset answers/index, giữ kết quả hoàn thành gần nhất. Back to topic quay lại bộ chọn mode trên cùng trang.
 
 ## Level system
 
 Mọi từ nằm trong một dataset có `language`, `rank`, `topics`. Level lấy ngưỡng từ config: Easy ≤ 300, Medium ≤ 1.200, Hard ≤ 3.000. Dataset có tính tích lũy: từ Easy cũng thuộc Medium/Hard.
 
-18 từ và rank hiện tại chỉ minh họa, chưa đại diện cho danh sách tần suất thực tế. Vì vậy cả 3 level hiện dùng cùng bộ từ demo. Con số trên card là quy mô mục tiêu.
+20 từ và rank hiện tại chỉ minh họa, chưa đại diện cho danh sách tần suất thực tế. Vì vậy cả 3 level hiện dùng cùng bộ từ demo. Con số trên card là quy mô mục tiêu.
 
 Thêm language trong config và data tương ứng; `getStaticPaths` tạo URL theo data. Thêm level/topic không cần copy page. Skill mới cần có controller/generator phù hợp trước khi bật `available`; hiện chỉ Vocabulary được triển khai.
 
@@ -97,7 +105,7 @@ Phase hiện tại chỉ có TypeScript/JSON local và localStorage. Repository 
 ## Bước tiếp theo
 
 1. Xác nhận UX demo và dataset/rank thật.
-2. Mở rộng từ vựng theo topic trước khi thêm game thứ hai.
+2. Review bốn mode hiện có rồi mở rộng từ vựng theo topic từng phần.
 3. Bổ sung blog/grammar/guides vào các collection sau khi xác nhận cấu trúc nội dung mẫu.
 
 Các bước này chưa được triển khai.
@@ -107,4 +115,4 @@ Các bước này chưa được triển khai.
 - [Các phase phát triển](doc/PHASES.md): phạm vi và tiêu chí hoàn thành.
 - [Tiến trình thực tế](doc/PROGRESS.md): trạng thái, validation và nhật ký công việc; cập nhật sau mỗi task.
 
-Mốc đầu tiên: `v0.1.0-base`, gồm base game và Astro content hiện tại.
+Mốc đầu tiên: `v0.1.0-base`, lưu base game và Astro content trước khi bổ sung Vocabulary Game Engine v1.

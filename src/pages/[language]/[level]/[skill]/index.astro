@@ -3,13 +3,12 @@ import BaseLayout from '../../../../layouts/BaseLayout.astro';
 import LearningCard from '../../../../components/LearningCard.astro';
 import { languages, levels, skills, coursePath } from '../../../../config/course';
 import { topicRepository, wordRepository } from '../../../../repositories/content';
-import { createQuestions } from '../../../../game/multiple-choice';
 export function getStaticPaths() { return languages.flatMap(language => levels.flatMap(level => skills.filter(skill => skill.available).map(skill => ({ params: { language: language.id, level: level.id, skill: skill.id }, props: { language, level, skill } })))); }
 const { language, level, skill } = Astro.props;
 const topics = await topicRepository.list(language.id);
 const topicCards = await Promise.all(topics.map(async topic => {
-  const questions = createQuestions(await wordRepository.list(language.id, level.id, topic.id));
-  return { ...topic, count: questions.length };
+  const words = await wordRepository.list(language.id, level.id, topic.id);
+  return { ...topic, count: words.length };
 }));
 ---
 <BaseLayout title={`${level.name} ${language.name} ${skill.name} games`} language={language.id}>
@@ -17,8 +16,8 @@ const topicCards = await Promise.all(topics.map(async topic => {
     <nav class="breadcrumbs" aria-label="Breadcrumb"><a href={coursePath(language.id)}>{language.name}</a><span aria-hidden="true">/</span><a href={coursePath(language.id, level.id)}>{level.name}</a><span aria-hidden="true">/</span><span aria-current="page">{skill.name}</span></nav>
     <header class="page-heading"><span class:list={['pill', level.color]}>{level.name} · {language.name}</span><h1>A world of words<span class="heading-dot">.</span></h1><p>Every topic is a new little adventure. Where shall we go?</p></header>
     <div class="section-heading"><h2>Pick your topic</h2><span class="section-aside">English words. Vietnamese meanings.</span></div>
-    <div class="content-grid">{topicCards.map(topic => <LearningCard {...topic} href={topic.count ? coursePath(language.id, level.id, skill.id, topic.id) : undefined} subtitle={`${topic.count} words · Multiple choice`} progressKey={`${language.id}:${level.id}:${topic.id}`} />)}</div>
-    <p class="demo-note">18 demo words to get you started. Your progress is saved on this device.</p>
+    <div class="content-grid">{topicCards.map(topic => <LearningCard {...topic} href={topic.count ? coursePath(language.id, level.id, skill.id, topic.id) : undefined} subtitle={`${topic.count} words · 4 vocabulary games`} progressKey={`${language.id}:${level.id}:${topic.id}`} />)}</div>
+    <p class="demo-note">20 demo words to get you started. Your progress is saved on this device.</p>
   </div>
   <script>
     import { progressStore } from '../../../../services/progress';

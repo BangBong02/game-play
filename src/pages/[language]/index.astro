@@ -17,7 +17,7 @@ const { language } = Astro.props;
     <section aria-labelledby="levels-title">
       <div class="section-heading"><div><span class="eyebrow">A PLACE TO START</span><h2 id="levels-title">Choose your adventure</h2></div><span class="section-aside">Every great journey starts with a word.</span></div>
       <div class="level-grid">{levels.map(level => <LearningCard {...level} href={coursePath(language.id, level.id)} variant="level" />)}</div>
-      <p class="demo-note"><span aria-hidden="true">✧</span> A small taste of what's growing. Try 18 demo words across 3 topics.</p>
+      <p class="demo-note"><span aria-hidden="true">✧</span> A small taste of what's growing. Try 20 demo words across 3 topics.</p>
     </section>
     <section class="how-section" id="how-it-works" aria-labelledby="how-title">
       <div class="how-intro"><span class="eyebrow">LESS STUDYING, MORE DISCOVERING</span><h2 id="how-title">A few minutes.<br />A little more you know.</h2></div>

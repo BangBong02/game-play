@@ -3,7 +3,7 @@ import BaseLayout from '../../../../layouts/BaseLayout.astro';
 import GameSession from '../../../../components/game/GameSession';
 import { languages, levels, skills, coursePath } from '../../../../config/course';
 import { topicRepository, wordRepository } from '../../../../repositories/content';
-import { createQuestions } from '../../../../game/multiple-choice';
+import { gameModes, generateQuestions, type GameMode, type Question } from '../../../../game/vocabulary';
 export async function getStaticPaths() {
   const routes = [];
   for (const language of languages) {
@@ -11,17 +11,18 @@ export async function getStaticPaths() {
       for (const skill of skills.filter(item => item.available)) {
         for (const topic of await topicRepository.list(language.id)) {
           const topicWords = await wordRepository.list(language.id, level.id, topic.id);
-          const questions = createQuestions(topicWords);
-          if (questions.length) routes.push({ params: { language: language.id, level: level.id, skill: skill.id, topic: topic.id }, props: { language, level, skill, topic, topicWords, questions } });
+          const pool = await wordRepository.list(language.id, level.id);
+          const banks = Object.fromEntries(gameModes.map(mode => [mode.id, generateQuestions(topicWords, mode.id, pool)])) as Record<GameMode, Question[]>;
+          if (topicWords.length) routes.push({ params: { language: language.id, level: level.id, skill: skill.id, topic: topic.id }, props: { language, level, skill, topic, topicWords, banks } });
         }
       }
     }
   }
   return routes;
 }
-const { language, level, skill, topic, topicWords, questions } = Astro.props;
+const { language, level, skill, topic, topicWords, banks } = Astro.props;
 const backHref = coursePath(language.id, level.id, skill.id);
-const description = `Learn ${topicWords.length} ${language.name} words about ${topic.name.toLowerCase()} with Vietnamese meanings, then practice with a ${level.name.toLowerCase()} multiple choice game.`;
+const description = `Learn ${topicWords.length} ${language.name} words about ${topic.name.toLowerCase()} with Vietnamese meanings, then practice with four vocabulary games.`;
 ---
 <BaseLayout title={`${topic.name} vocabulary — ${level.name} ${language.name}`} description={description} language={language.id}>
   <div class="page-container game-page">
@@ -34,8 +35,8 @@ const description = `Learn ${topicWords.length} ${language.name} words about ${t
     </header>
     <section id="practice" class="reading-width practice-section" aria-labelledby="practice-heading">
       <h2 id="practice-heading">Practice what you remember</h2>
-      <p>Choose one meaning for each word. Read the feedback, then select Next word. Your round is saved on this device.</p>
-      <GameSession client:visible questions={questions} progressKey={{ language: language.id, level: level.id, topic: topic.id }} backHref={backHref} />
+      <p>Choose Word → Meaning, Meaning → Word, Image → Word or Type the Word. Answer each question, read the feedback, then select Next word. Each game saves its round on this device.</p>
+      <GameSession client:visible banks={banks} progressKey={{ language: language.id, level: level.id, topic: topic.id }} />
       <noscript><p class="notice">Enable JavaScript to play. You can still read the full word list below.</p></noscript>
     </section>
     <section id="word-list" class="prose reading-width vocabulary-content" aria-labelledby="word-list-heading">

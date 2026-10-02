@@ -8,6 +8,7 @@ export interface Word {
   partOfSpeech?: string;
   example?: string;
   imageUrl?: string;
+  imageAlt?: string;
   audioUrl?: string;
   topics: string[];
 }

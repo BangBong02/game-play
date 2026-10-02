@@ -10,6 +10,29 @@ export const topics: Topic[] = [
 ];
 
 // Demo ranks illustrate the level filter; they are not researched frequency rankings.
+const imageDescriptions: Record<string, string> = {
+  dog: 'A brown pet with floppy ears, a round nose and a wagging tail.',
+  cat: 'A pet with triangular ears, whiskers and a curled tail.',
+  bird: 'A small feathered animal perched on a branch.',
+  fish: 'An underwater animal with fins and a forked tail.',
+  cow: 'A black-and-white farm animal with horns and an udder.',
+  horse: 'A tall brown farm animal with a mane and hooves.',
+  chicken: 'A farm bird with a red comb and short beak.',
+  duck: 'A yellow water bird with a broad orange bill.',
+  rabbit: 'A small animal with long upright ears and a fluffy tail.',
+  elephant: 'A large gray animal with big ears, tusks and a long trunk.',
+  apple: 'A round red fruit with a stem and a green leaf.',
+  bread: 'A golden baked loaf with three cuts across its crust.',
+  milk: 'A carton pouring white liquid into a glass.',
+  rice: 'A bowl filled with small white grains.',
+  red: 'A solid color swatch like a ripe tomato.',
+  blue: 'A solid color swatch like a clear daytime sky.',
+  green: 'A solid color swatch like fresh leaves.',
+  yellow: 'A solid color swatch like bright sunshine.',
+  banana: 'A curved yellow fruit with a peeled end.',
+  egg: 'An oval white shell beside a cracked shell and a golden yolk.',
+};
+
 export const words: Word[] = [
   { id: 1, language: 'en', word: 'dog', meaning: 'Con chó', rank: 10, topics: ['animals'] },
   { id: 2, language: 'en', word: 'cat', meaning: 'Con mèo', rank: 20, topics: ['animals'] },
@@ -29,4 +52,6 @@ export const words: Word[] = [
   { id: 16, language: 'en', word: 'blue', meaning: 'Màu xanh dương', rank: 160, topics: ['colors'] },
   { id: 17, language: 'en', word: 'green', meaning: 'Màu xanh lá', rank: 170, topics: ['colors'] },
   { id: 18, language: 'en', word: 'yellow', meaning: 'Màu vàng', rank: 180, topics: ['colors'] },
-];
+  { id: 19, language: 'en', word: 'banana', meaning: 'Quả chuối', rank: 190, topics: ['food'] },
+  { id: 20, language: 'en', word: 'egg', meaning: 'Quả trứng', rank: 200, topics: ['food'] },
+].map(word => ({ ...word, imageUrl: `/images/vocabulary/${word.word}.svg`, imageAlt: imageDescriptions[word.word] }));
