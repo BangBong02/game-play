@@ -4,6 +4,7 @@ import GameSession from '../../../../components/game/GameSession';
 import { languages, levels, skills, coursePath } from '../../../../config/course';
 import { topicRepository, wordRepository } from '../../../../repositories/content';
 import { gameModes, generateQuestions, type GameMode, type Question } from '../../../../game/vocabulary';
+import { isWordEligible } from '../../../../game/eligibility';
 export async function getStaticPaths() {
   const routes = [];
   for (const language of languages) {
@@ -13,14 +14,15 @@ export async function getStaticPaths() {
           const topicWords = await wordRepository.list(language.id, level.id, topic.id);
           const pool = await wordRepository.list(language.id, level.id);
           const banks = Object.fromEntries(gameModes.map(mode => [mode.id, generateQuestions(topicWords, mode.id, pool)])) as Record<GameMode, Question[]>;
-          routes.push({ params: { language: language.id, level: level.id, skill: skill.id, topic: topic.id }, props: { language, level, skill, topic, topicWords, banks } });
+          const answerPools = Object.fromEntries(gameModes.map(mode => [mode.id, pool.filter(word => isWordEligible(word, 'word-to-meaning')).map(word => mode.id === 'word-to-meaning' ? word.meaning : word.word)])) as Record<GameMode, string[]>;
+          routes.push({ params: { language: language.id, level: level.id, skill: skill.id, topic: topic.id }, props: { language, level, skill, topic, topicWords, banks, answerPools } });
         }
       }
     }
   }
   return routes;
 }
-const { language, level, skill, topic, topicWords, banks } = Astro.props;
+const { language, level, skill, topic, topicWords, banks, answerPools } = Astro.props;
 const backHref = coursePath(language.id, level.id, skill.id);
 const hasWords = topicWords.length > 0;
 const description = hasWords
@@ -38,7 +40,7 @@ const description = hasWords
     </header>
     {hasWords ? <section id="practice" class="reading-width practice-section" aria-labelledby="practice-heading">
       <div class="practice-intro"><span class:list={['pill', level.color]}>{level.name} · {skill.name}</span><h2 id="practice-heading">Choose how to practice</h2><p>One topic, four ways to learn. Answer, check, then choose Next. Your round is saved on this device.</p></div>
-      <GameSession client:visible banks={banks} topicName={topic.name} levelName={level.name} progressKey={{ language: language.id, level: level.id, topic: topic.id }} />
+      <GameSession client:visible banks={banks} answerPools={answerPools} topicName={topic.name} levelName={level.name} progressKey={{ language: language.id, level: level.id, topic: topic.id }} />
       <noscript><p class="notice">Enable JavaScript to play. You can still read the full word list below.</p></noscript>
     </section> : <section class="reading-width practice-section" aria-labelledby="empty-heading"><h2 id="empty-heading">No words are available for this level yet.</h2><p>Choose another topic to keep learning. New words will appear here as we add content.</p><a class="primary-button" href={backHref}>Explore vocabulary topics →</a></section>}
     <section id="word-list" class="prose reading-width vocabulary-content" aria-labelledby="word-list-heading">

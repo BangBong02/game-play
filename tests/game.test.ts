@@ -1,7 +1,7 @@
 ﻿import assert from 'node:assert/strict';
 import { existsSync } from 'node:fs';
 import test from 'node:test';
-import { getLevelRankRange, levels, wordBelongsToLevel } from '../src/config/course.ts';
+import { levels, wordBelongsToLevel } from '../src/config/course.ts';
 import { topics, words as dataset } from '../src/data/content.ts';
 import { filterWords, wordRepository } from '../src/repositories/content.ts';
 import { isWordEligible } from '../src/game/eligibility.ts';
@@ -9,7 +9,7 @@ import { advanceGame, createSession, gameModes, generateDistractors, generateQue
 import { createSavedProgress, progressStore, readStoredSession } from '../src/services/progress.ts';
 import type { Word } from '../src/types/content.ts';
 
-const words: Word[] = ['dog', 'cat', 'bird', 'fish', 'cow'].map((word, index) => ({ id: index + 1, language: 'en', word, meaning: `meaning ${index}`, rank: index + 1, topics: ['animals'], imageUrl: `/images/vocabulary/${word}.svg`, imageAlt: `Demo illustration ${index}` }));
+const words: Word[] = ['dog', 'cat', 'bird', 'fish', 'cow'].map((word, index) => ({ id: `en-${word}`, language: 'en', word, meaning: `meaning ${index}`, level: 'easy', learningRank: index + 1, topics: ['animals'], imageUrl: `/images/vocabulary/${word}.svg`, imageAlt: `Demo illustration ${index}` }));
 const random = () => 0.25;
 const questions = generateQuestions(words, 'word-to-meaning', words, random) as ChoiceQuestion[];
 const config: SessionConfig = { language: 'en', level: 'easy', topic: 'animals', mode: 'word-to-meaning', questionCount: 5 };
@@ -30,18 +30,17 @@ function finish(session: NonNullable<ReturnType<typeof createSession>>) {
   return { ...session, state };
 }
 
-test('level thresholds are inclusive and cumulative', () => {
-  for (const [level, max] of [['easy', 300], ['medium', 1200], ['hard', 3000]] as const) {
-    assert.equal(wordBelongsToLevel(max, level), true);
-    assert.equal(wordBelongsToLevel(max + 1, level), false);
-    assert.equal(wordBelongsToLevel(0, level), false);
-    assert.equal(wordBelongsToLevel(1.5, level), false);
+test('curriculum membership includes only selected and earlier levels in cumulative mode', () => {
+  for (const [selectedIndex, selected] of levels.entries()) {
+    for (const [wordIndex, wordLevel] of levels.entries()) {
+      assert.equal(wordBelongsToLevel(wordLevel.id, selected.id), wordIndex <= selectedIndex);
+      assert.equal(wordBelongsToLevel(wordLevel.id, selected.id, 'new-only'), wordLevel.id === selected.id);
+    }
   }
-  assert.equal(wordBelongsToLevel(300, 'hard'), true);
 });
 
 test('shared data filters language, level and topic before generating questions', () => {
-  const sample = [...words, { ...words[0], id: 10, rank: 301 }, { ...words[0], id: 11, rank: 1201 }, { ...words[0], id: 12, language: 'fr' }, { ...words[0], id: 13, topics: ['food'] }];
+  const sample: Word[] = [...words, { ...words[0], id: 'en-medium', level: 'medium' }, { ...words[0], id: 'en-hard', level: 'hard' }, { ...words[0], id: 'fr-dog', language: 'fr' }, { ...words[0], id: 'en-food', topics: ['food'] }];
   assert.equal(filterWords(sample, 'en', 'easy', 'animals').length, 5);
   assert.equal(filterWords(sample, 'en', 'medium', 'animals').length, 6);
   assert.equal(filterWords(sample, 'en', 'hard', 'animals').length, 7);
@@ -49,22 +48,72 @@ test('shared data filters language, level and topic before generating questions'
   assert.equal(filterWords(sample, 'fr', 'easy', 'animals').length, 1);
 });
 
-test('new-only ranges include their boundaries, exclude earlier words and partition cumulative levels', async () => {
-  const ranges = [[1, 300], [301, 1200], [1201, 3000]];
+test('new-only returns exact curriculum levels and partitions cumulative results', async () => {
   const counts = [11, 7, 2];
   const accumulated: Word[] = [];
   for (const [index, level] of levels.entries()) {
-    const [minRank, maxRank] = ranges[index];
-    assert.deepEqual(getLevelRankRange(level.id), { minRank: 1, maxRank });
-    assert.deepEqual(getLevelRankRange(level.id, 'new-only'), { minRank, maxRank });
-    for (const rank of [minRank, maxRank]) assert.equal(wordBelongsToLevel(rank, level.id, 'new-only'), true);
-    for (const rank of [minRank - 1, maxRank + 1, -1, NaN, Infinity, 1.5]) assert.equal(wordBelongsToLevel(rank, level.id, 'new-only'), false);
     const added = await wordRepository.list('en', level.id, undefined, 'new-only');
     assert.equal(added.length, counts[index]);
-    assert.ok(added.every(word => word.rank >= minRank && word.rank <= maxRank));
+    assert.ok(added.every(word => word.level === level.id));
     accumulated.push(...added);
-    assert.deepEqual(accumulated.map(word => word.id).sort((a, b) => a - b), filterWords(dataset, 'en', level.id).map(word => word.id).sort((a, b) => a - b));
+    assert.deepEqual(accumulated.map(word => word.id).sort(), filterWords(dataset, 'en', level.id).map(word => word.id).sort());
   }
+});
+
+test('learning order sorts ascending without mutating input or using frequency metadata for level', () => {
+  const sample: Word[] = [
+    { ...words[0], learningRank: 400, frequencyRank: 5000 },
+    { ...words[1], learningRank: 2, frequencyRank: undefined },
+    { ...words[2], level: 'medium', learningRank: 3, frequencyRank: 1 },
+    { ...words[3], level: 'hard', learningRank: 1, frequencyRank: 2 },
+    { ...words[4], learningRank: 20, frequencyRank: 10 },
+  ];
+  const snapshot = JSON.stringify(sample);
+  assert.deepEqual(filterWords(sample, 'en', 'easy', undefined, 'new-only').map(word => word.id), ['en-cat', 'en-cow', 'en-dog']);
+  assert.deepEqual(filterWords(sample, 'en', 'medium', undefined, 'new-only').map(word => word.id), ['en-bird']);
+  assert.deepEqual(filterWords(sample, 'en', 'hard', undefined, 'new-only').map(word => word.id), ['en-fish']);
+  assert.deepEqual(filterWords(sample, 'en', 'medium').map(word => word.id), ['en-cat', 'en-bird', 'en-cow', 'en-dog']);
+  assert.deepEqual(filterWords(sample, 'en', 'hard').map(word => word.id), ['en-fish', 'en-cat', 'en-bird', 'en-cow', 'en-dog']);
+  assert.equal(JSON.stringify(sample), snapshot);
+  const changedFrequency = sample.map(word => ({ ...word, frequencyRank: undefined }));
+  assert.deepEqual(filterWords(changedFrequency, 'en', 'hard').map(word => word.id), filterWords(sample, 'en', 'hard').map(word => word.id));
+});
+
+test('explicit demo IDs preserve pre-migration question IDs and stored rounds in every mode', () => {
+  const values = storage();
+  assert.equal(dataset.length, 20);
+  assert.equal(new Set(dataset.map(word => word.id)).size, 20);
+  assert.ok(dataset.every(word => typeof word.id === 'string' && word.id && !('rank' in word)));
+  const selected = filterWords(dataset, 'en', 'easy', 'animals');
+  assert.deepEqual(selected.map(word => word.id), ['en-1', 'en-2', 'en-3', 'en-4', 'en-5', 'en-7']);
+  for (const mode of gameModes) {
+    const bank = generateQuestions(selected, mode.id, selected, random);
+    const session = createSession({ ...config, mode: mode.id }, bank, random)!;
+    session.state = advanceGame(session.state, { type: 'answer', answer: session.questions[0].correctAnswer }, session.questions);
+    progressStore.save(createSavedProgress(session));
+    const before = [...values];
+    const reordered = filterWords([...dataset].reverse(), 'en', 'easy', 'animals');
+    const rebuiltBank = generateQuestions(reordered, mode.id, reordered, random);
+    assert.deepEqual(readStoredSession(progressStore.get(session.config), session.config, mode.id, rebuiltBank), session);
+    assert.deepEqual([...values], before);
+  }
+});
+
+test('resume validates old distractors against the current curriculum pool, not a newly shuffled bank', () => {
+  const pool = filterWords(dataset, 'en', 'medium');
+  const targets = filterWords(dataset, 'en', 'medium', 'colors');
+  const bank = generateQuestions(targets, 'meaning-to-word', pool, random) as ChoiceQuestion[];
+  const session = createSession({ ...config, level: 'medium', topic: 'colors', mode: 'meaning-to-word', questionCount: 3 }, bank, random)!;
+  const oldDistractor = pool.find(word => !bank.some(question => question.options.includes(word.word)))!;
+  assert.ok(oldDistractor, 'Fixture needs a valid word absent from current shuffled choices');
+  const first = session.questions[0] as ChoiceQuestion;
+  first.options = [first.correctAnswer, oldDistractor.word, ...first.options.filter(option => option !== first.correctAnswer).slice(0, 2)];
+  session.state = advanceGame(session.state, { type: 'answer', answer: oldDistractor.word }, session.questions);
+  const saved = createSavedProgress(session);
+  assert.equal(readStoredSession(saved, session.config, session.config.mode, bank), null);
+  assert.deepEqual(readStoredSession(saved, session.config, session.config.mode, bank, pool.map(word => word.word)), session);
+  assert.equal(readStoredSession(saved, session.config, session.config.mode, bank, pool.filter(word => word.id !== oldDistractor.id).map(word => word.word)), null);
+  assert.equal(readStoredSession(saved, session.config, session.config.mode, bank, pool.map(word => word.meaning)), null);
 });
 
 test('demo data and topic counts use the selected language and actual level filter', async () => {
@@ -76,7 +125,7 @@ test('demo data and topic counts use the selected language and actual level filt
   for (const [index, level] of levels.entries()) {
     const pool = await wordRepository.list('en', level.id);
     assert.equal(pool.length, expected[index].total);
-    assert.ok(pool.every(word => word.rank >= 1 && word.rank <= level.maxRank));
+    assert.ok(pool.every(word => wordBelongsToLevel(word.level, level.id)));
     assert.equal(new Set(pool.map(word => word.id)).size, pool.length);
     for (const topic of topics) {
       const filtered = await wordRepository.list('en', level.id, topic.id);
@@ -130,7 +179,7 @@ test('all four modes use filtered targets and distractors across levels, includi
         const bank = generateQuestions(targets, mode.id, pool, random);
         assert.equal(bank.length, targets.length);
         for (const question of bank) {
-          assert.ok(targets.some(word => `en-${word.id}` === question.id));
+          assert.ok(targets.some(word => word.id === question.id));
           if (question.kind === 'choice') {
             const field = mode.id === 'word-to-meaning' ? 'meaning' : 'word';
             assert.ok(question.options.every(option => pool.some(word => word[field] === option)));
@@ -159,7 +208,7 @@ test('saved rounds reject words moved outside their level without deleting store
   const session = createSession(config, questions, random)!;
   progressStore.save(createSavedProgress(session));
   const before = [...values];
-  const revised = words.map(word => ({ ...word, rank: word.id === 1 ? 400 : word.rank }));
+  const revised: Word[] = words.map(word => ({ ...word, level: word.id === 'en-dog' ? 'medium' : word.level }));
   const filtered = filterWords(revised, 'en', 'easy', 'animals');
   const bank = generateQuestions(filtered, config.mode, filtered, random);
   assert.equal(readStoredSession(progressStore.get(config), config, config.mode, bank), null);
@@ -177,14 +226,14 @@ test('all choice modes contain four unique answers with exactly one correct answ
       if (question.kind !== 'choice') continue;
       assert.equal(new Set(question.options.map(normalizeAnswer)).size, 4);
       assert.equal(question.options.filter(option => option === question.correctAnswer).length, 1);
-      assert.equal(question.correctAnswer, mode.id === 'word-to-meaning' ? words.find(word => `en-${word.id}` === question.id)!.meaning : words.find(word => `en-${word.id}` === question.id)!.word);
+      assert.equal(question.correctAnswer, mode.id === 'word-to-meaning' ? words.find(word => word.id === question.id)!.meaning : words.find(word => word.id === question.id)!.word);
     }
     assert.deepEqual(generateQuestions(words, mode.id, words, random), generated);
   }
 });
 
 test('distractors prefer topic words and fall back safely within the provided level pool', () => {
-  const outside = { ...words[0], id: 99, word: 'apple', meaning: 'fruit', topics: ['food'] };
+  const outside = { ...words[0], id: 'en-apple', word: 'apple', meaning: 'fruit', topics: ['food'] };
   const generated = generateQuestions(words, 'meaning-to-word', [...words, outside], random) as ChoiceQuestion[];
   assert.equal(generated.some(question => question.options.includes('apple')), false);
   const small = generateQuestions(words.slice(0, 1), 'meaning-to-word', words, random);
@@ -192,18 +241,18 @@ test('distractors prefer topic words and fall back safely within the provided le
   assert.equal(generateQuestions(words.slice(0, 3), 'word-to-meaning').length, 0);
   assert.equal(generateQuestions(words.map(word => ({ ...word, meaning: 'same' })), 'word-to-meaning').length, 0);
   assert.equal(generateQuestions(words.map(word => ({ ...word, meaning: 'same' })), 'meaning-to-word').length, 0);
-  const duplicates = [...words, words[0], { ...words[0], id: 50, word: 'DOG', meaning: 'Meaning 0' }];
-  assert.equal(generateQuestions(duplicates, 'word-to-meaning', duplicates, random).filter(question => question.id === 'en-1').length, 1);
+  const duplicates = [...words, words[0], { ...words[0], id: 'en-duplicate-dog', word: 'DOG', meaning: 'Meaning 0' }];
+  assert.equal(generateQuestions(duplicates, 'word-to-meaning', duplicates, random).filter(question => question.id === 'en-dog').length, 1);
   assert.equal(generateQuestions(duplicates, 'word-to-meaning', duplicates, random).length, words.length);
 });
 
 test('distractor helper excludes equivalent answers, duplicates, blanks and other languages', () => {
   const invalid = [
-    { ...words[0], id: 90, word: ' DOG ', meaning: 'different meaning' },
-    { ...words[0], id: 91, word: 'hound', meaning: ' MEANING 0 ' },
-    { ...words[1], id: 92, word: ' CAT ', meaning: ' MEANING 1 ' },
-    { ...words[0], id: 93, word: 'chien', meaning: 'French meaning', language: 'fr' },
-    { ...words[0], id: 94, word: ' ', meaning: ' ' },
+    { ...words[0], id: 'en-duplicate-dog', word: ' DOG ', meaning: 'different meaning' },
+    { ...words[0], id: 'en-hound', word: 'hound', meaning: ' MEANING 0 ' },
+    { ...words[1], id: 'en-duplicate-cat', word: ' CAT ', meaning: ' MEANING 1 ' },
+    { ...words[0], id: 'fr-chien', word: 'chien', meaning: 'French meaning', language: 'fr' },
+    { ...words[0], id: 'en-blank', word: ' ', meaning: ' ' },
   ];
   const topic = words.slice(0, 2);
   const pool = [...words, ...invalid];

@@ -1,9 +1,13 @@
+import type { LevelId } from '../config/course';
+
 export interface Word {
-  id: number;
+  id: string;
   language: string;
   word: string;
   meaning: string;
-  rank: number;
+  level: LevelId;
+  learningRank: number;
+  frequencyRank?: number;
   phonetic?: string;
   partOfSpeech?: string;
   example?: string;

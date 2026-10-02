@@ -24,7 +24,7 @@ Astro tạo HTML tĩnh và routing cho level, vocabulary, blog, grammar, guides.
 
 ```text
 src/
-  config/course.ts          # Language, level, skill, rank filter, URL
+  config/course.ts          # Language, curriculum levels, progression, skill, URL
   config/content.ts         # Metadata cho blog/grammar/guides
   content.config.ts         # Astro Content Collections, schema + local file loaders
   data/content.ts           # Một dataset Word chung và topic
@@ -67,7 +67,7 @@ Trang topic có một H1, giới thiệu, hướng dẫn chơi và bảng từ/n
 
 UI dùng CSS thuần với màu xanh/cam/tím theo level, card chọn game lớn và feedback có text/icon. Topic card hiển thị progress lượt gần nhất cùng Play/Continue/Play again; khi đang chơi, header thu gọn để tập trung vào câu hỏi, còn bảng từ vẫn ở bên dưới. Illustration chữ trên homepage dùng HTML/CSS và plant SVG có sẵn.
 
-Màn chơi có một counter và dải mốc từng từ: số có viền là từ hiện tại, dấu ✓ là từ đã hoàn thành, số nhạt là từ sắp tới. Mốc biểu thị tiến trình, không phải đáp án đúng/sai; Correct/Incorrect/Accuracy chỉ tổng kết ở result. Sau khi trả lời, Next nhận focus để tiếp tục bằng Enter; không tự chuyển câu. Bộ chọn mode và màn chơi giữ ngữ cảnh level/Vocabulary, với mục tiêu meaning/recall/picture/spelling rõ ràng. Độ khó lấy từ dataset đã lọc rank theo level, không gán mode thành Easy hay Hard.
+Màn chơi có một counter và dải mốc từng từ: số có viền là từ hiện tại, dấu ✓ là từ đã hoàn thành, số nhạt là từ sắp tới. Mốc biểu thị tiến trình, không phải đáp án đúng/sai; Correct/Incorrect/Accuracy chỉ tổng kết ở result. Sau khi trả lời, Next nhận focus để tiếp tục bằng Enter; không tự chuyển câu. Bộ chọn mode và màn chơi giữ ngữ cảnh level/Vocabulary, với mục tiêu meaning/recall/picture/spelling rõ ràng. Độ khó lấy từ curriculum level do Lingoplay curate, không gán mode thành Easy hay Hard.
 
 ## Content Collections
 
@@ -100,24 +100,31 @@ Helper `generateDistractors` dùng chung cho ba choice mode: ưu tiên cùng top
 
 ## Level system
 
-Mọi từ nằm trong một dataset có `language`, `rank`, `topics`. Level lấy ngưỡng từ config: Easy ≤ 300, Medium ≤ 1.200, Hard ≤ 3.000. Dataset có tính tích lũy: từ Easy cũng thuộc Medium/Hard.
+Vocabulary Data Model v2 tách ba khái niệm:
 
-20 từ và rank hiện tại chỉ minh họa, chưa đại diện cho danh sách tần suất thực tế. Một số từ vượt rank 300 hoặc 1.200 để kiểm chứng filtering. Con số 300/1.200/3.000 trên card level là quy mô mục tiêu; count trên topic là số từ hiện có sau filter.
+- `level`: curriculum difficulty do Lingoplay xác định (`easy`/`medium`/`hard`). Repository dùng field này để quyết định membership.
+- `learningRank`: teaching order; repository trả từ theo `learningRank ASC`, không mutate dataset. Game vẫn shuffle round như trước.
+- `frequencyRank`: optional reference metadata, không quyết định level hoặc sorting. Không có dữ liệu đáng tin thì để undefined.
 
-`getLevelRankRange(level, progression)` lấy giới hạn từ `config/course.ts`. Repository mặc định cumulative; không có UI chọn progression:
+Easy khoảng 300 từ curriculum, Medium khoảng 1.200 và Hard khoảng 3.000 theo cumulative là quy mô mục tiêu trong `targetWordCount`, không phải frequency cutoff. Dataset vẫn chỉ có 20 từ demo, level/thứ tự học minh họa và chưa có frequencyRank nghiên cứu. Teaching order demo dùng Easy 1–11, Medium 301–307, Hard 1.201–1.202 để dành vị trí cho curriculum đầy đủ; membership không được suy từ các khoảng số này. Count trên topic lấy từ repository hiện tại.
+
+Thứ tự level tập trung trong `config/course.ts`; `wordBelongsToLevel` nhận curriculum level của từ, không nhận rank. Repository mặc định cumulative để giữ flow/counts hiện có; không có UI chọn progression:
 
 ```ts
-await wordRepository.list('en', 'easy', 'animals'); // rank 1–300
-await wordRepository.list('en', 'medium'); // rank 1–1200
-await wordRepository.list('en', 'medium', 'animals', 'new-only'); // rank 301–1200
-await wordRepository.list('en', 'hard', undefined, 'new-only'); // rank 1201–3000
+await wordRepository.list('en', 'easy', 'animals'); // level easy, topic animals
+await wordRepository.list('en', 'medium'); // easy + medium
+await wordRepository.list('en', 'hard'); // easy + medium + hard
+await wordRepository.list('en', 'medium', 'animals', 'new-only'); // chỉ level medium
+await wordRepository.list('en', 'hard', undefined, 'new-only'); // chỉ level hard
 ```
 
-`Word` giữ ID số ổn định, `language`, `word`, `meaning`, `rank`, `topics: string[]`; các trường tùy chọn gồm `partOfSpeech`, `phonetic`, `example`, `imageUrl`, `imageAlt`, `audioUrl`, `visual`. Một từ chỉ xuất hiện một lần trong dataset, có thể thuộc nhiều topic. Thêm metadata không đổi engine/UI.
+Schema [Word](src/types/content.ts) gồm `id: string`, `language`, `word`, `meaning`, `level`, `learningRank`, `topics: string[]`; optional `frequencyRank`, `partOfSpeech`, `phonetic`, `example`, `imageUrl`, `imageAlt`, `audioUrl`, `visual`. Một từ chỉ xuất hiện một lần trong dataset, có thể thuộc nhiều topic. Thêm metadata không đổi engine/UI.
+
+ID demo gán rõ trong mỗi record là `en-1`…`en-20`, giữ nguyên ID câu hỏi mà các round v1/v2 đang lưu. Đây là ID cố định, không lấy từ array index và không đổi khi sắp xếp/đổi spelling/metadata. Từ mới có thể dùng `en-dog` hoặc ID cố định tương đương; phải kiểm tra uniqueness và giữ ID khi migrate database. Generator dùng `word.id` trực tiếp; storage version/key không đổi.
 
 `isWordEligible(word, activity)` dùng chung trong generator: ba mode text cần word/meaning không rỗng; Image → Word còn cần SVG local, alt mô tả và không bị đánh dấu `visual: false`. `visual` chưa khai báo vẫn tương thích Image → Word cũ. Quy tắc `image-match` cần ảnh hợp lệ và `visual: true`; `listening` cần `audioUrl` không rỗng. Hai quy tắc sau chỉ là helper chuẩn bị, chưa có game/audio/PixiJS. Distractor dùng từ có text hợp lệ trong pool cùng level, không bắt buộc có ảnh.
 
-Session đã lưu có từ/đáp án không còn hợp lệ sẽ bị engine bỏ qua khi đọc, bắt đầu round mới; không xóa localStorage hoặc đổi key. Topic card ẩn summary có câu hỏi nằm ngoài tập từ hiện tại.
+Session đã lưu có từ/đáp án không còn hợp lệ sẽ bị engine bỏ qua khi đọc, bắt đầu round mới; không xóa localStorage hoặc đổi key. Resume kiểm tra distractor theo toàn bộ pool đáp án đã lọc language/level do Astro chuẩn bị, không theo subset options vừa shuffle trong bank mới. Nhờ đó đổi teaching order/shuffle không làm mất round còn hợp lệ. Topic card ẩn summary có câu hỏi nằm ngoài tập từ hiện tại.
 
 Thêm language trong config và data tương ứng; `getStaticPaths` tạo URL theo data. Thêm level/topic không cần copy page. Skill mới cần có controller/generator phù hợp trước khi bật `available`; hiện chỉ Vocabulary được triển khai.
 
@@ -167,11 +174,11 @@ Phase hiện tại chỉ có TypeScript/JSON local và localStorage. Repository 
 
 ## Bước tiếp theo
 
-1. Xác nhận nguồn/licence, tiêu chí rank và nghĩa tiếng Việt cho Easy 300 thật.
-2. Nhập từng phần vào dataset local theo `Word`: ID ổn định, rank 1–300, topics hợp lệ, kiểm tra trùng từ và nội dung. Từ trừu tượng giữ `visual: false`, không cần ảnh; kiểm chứng filter/count/eligibility và flow mẫu sau mỗi phần, không đổi engine/UI.
+1. Xác nhận nguồn/licence, mục tiêu học và tiêu chí curate curriculum Easy 300 thật; review nghĩa tiếng Việt.
+2. Nhập từng phần vào dataset local theo `Word`: ID ổn định, `level: 'easy'`, `learningRank` thể hiện thứ tự dạy, topics hợp lệ; kiểm tra trùng từ và nội dung. `frequencyRank` chỉ thêm khi có nguồn tham khảo, không dùng làm điều kiện Easy. Từ trừu tượng giữ `visual: false`, không cần ảnh; kiểm chứng filter/count/eligibility và flow mẫu sau mỗi phần, không đổi engine/UI.
 3. Bổ sung blog/grammar/guides vào các collection sau khi xác nhận cấu trúc nội dung mẫu.
 
-Phần UI/UX và data layer đã cập nhật; nội dung/rank vẫn là 20 từ demo, chưa nhập Easy 300. Trạng thái và validation chi tiết xem trong progress.
+Phần UI/UX và data model v2 đã cập nhật; curriculum vẫn là 20 từ demo, chưa nhập Easy 300. Trạng thái và validation chi tiết xem trong progress.
 
 ## Phase và tiến trình
 

@@ -11,7 +11,9 @@ export interface TopicRepository {
 }
 
 export function filterWords(dataset: Word[], language: string, level: LevelId, topic?: string, progression: Progression = 'cumulative'): Word[] {
-  return dataset.filter(word => word.language === language && (!topic || word.topics.includes(topic)) && wordBelongsToLevel(word.rank, level, progression));
+  return dataset
+    .filter(word => word.language === language && (!topic || word.topics.includes(topic)) && wordBelongsToLevel(word.level, level, progression))
+    .sort((a, b) => a.learningRank - b.learningRank);
 }
 
 export const wordRepository: WordRepository = {

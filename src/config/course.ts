@@ -1,21 +1,13 @@
 export const languages = [{ id: 'en', name: 'English', flag: '🇬🇧' }];
 
 export const levels = [
-  { id: 'easy', name: 'Easy', maxRank: 300, subtitle: '300 essential words', description: 'Start with everyday English', detail: 'Small steps. A strong foundation.', color: 'green', icon: 'sprout' },
-  { id: 'medium', name: 'Medium', maxRank: 1200, subtitle: '1,200 common words', description: 'Build everyday communication', detail: 'More words. More possibilities.', color: 'orange', icon: 'plant' },
-  { id: 'hard', name: 'Hard', maxRank: 3000, subtitle: '3,000 words', description: 'Advanced learning and academic vocabulary', detail: 'Grow beyond the everyday.', color: 'purple', icon: 'tree' },
+  { id: 'easy', name: 'Easy', targetWordCount: 300, subtitle: '300 essential words', description: 'Start with everyday English', detail: 'Small steps. A strong foundation.', color: 'green', icon: 'sprout' },
+  { id: 'medium', name: 'Medium', targetWordCount: 1200, subtitle: '1,200 common words', description: 'Build everyday communication', detail: 'More words. More possibilities.', color: 'orange', icon: 'plant' },
+  { id: 'hard', name: 'Hard', targetWordCount: 3000, subtitle: '3,000 words', description: 'Advanced learning and academic vocabulary', detail: 'Grow beyond the everyday.', color: 'purple', icon: 'tree' },
 ] as const;
 
 export type LevelId = typeof levels[number]['id'];
 export type Progression = 'cumulative' | 'new-only';
-
-export function getLevelRankRange(level: LevelId, progression: Progression = 'cumulative') {
-  const index = levels.findIndex(item => item.id === level);
-  return {
-    minRank: progression === 'new-only' && index > 0 ? levels[index - 1].maxRank + 1 : 1,
-    maxRank: levels[index].maxRank,
-  };
-}
 
 export const skills = [
   { id: 'vocabulary', name: 'Vocabulary', icon: '🧩', description: 'Make new words stick, one game at a time.', available: true },
@@ -25,9 +17,10 @@ export const skills = [
   { id: 'writing', name: 'Writing', icon: '💬', description: 'Turn your thoughts into words.', available: false },
 ];
 
-export function wordBelongsToLevel(rank: number, level: LevelId, progression: Progression = 'cumulative'): boolean {
-  const { minRank, maxRank } = getLevelRankRange(level, progression);
-  return Number.isInteger(rank) && rank >= minRank && rank <= maxRank;
+export function wordBelongsToLevel(wordLevel: LevelId, level: LevelId, progression: Progression = 'cumulative'): boolean {
+  if (progression === 'new-only') return wordLevel === level;
+  const index = levels.findIndex(item => item.id === level);
+  return levels.slice(0, index + 1).some(item => item.id === wordLevel);
 }
 
 export function coursePath(language: string, ...segments: string[]): string {

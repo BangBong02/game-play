@@ -3,9 +3,9 @@ import VocabularyGame from './VocabularyGame';
 import { advanceGame, createSession, gameModes, getStats, isGameMode, type GameAction, type GameMode, type Question, type SessionConfig, type VocabularySession } from '../../game/vocabulary';
 import { createSavedProgress, progressStore, readStoredSession } from '../../services/progress';
 
-interface Props { banks: Record<GameMode, Question[]>; topicName: string; levelName: string; progressKey: Pick<SessionConfig, 'language' | 'level' | 'topic'> }
+interface Props { banks: Record<GameMode, Question[]>; answerPools: Record<GameMode, string[]>; topicName: string; levelName: string; progressKey: Pick<SessionConfig, 'language' | 'level' | 'topic'> }
 
-export default function GameSession({ banks, topicName, levelName, progressKey }: Props) {
+export default function GameSession({ banks, answerPools, topicName, levelName, progressKey }: Props) {
   const [session, setSession] = useState<VocabularySession | null>(null);
   const [ready, setReady] = useState(false);
   const [storageError, setStorageError] = useState(false);
@@ -14,9 +14,9 @@ export default function GameSession({ banks, topicName, levelName, progressKey }
   useEffect(() => {
     const recent = progressStore.get(progressKey);
     const mode = recent && typeof recent === 'object' && 'mode' in recent && isGameMode(recent.mode) ? recent.mode : 'word-to-meaning';
-    setSession(readStoredSession(progressStore.get({ ...progressKey, mode }), progressKey, mode, banks[mode]));
+    setSession(readStoredSession(progressStore.get({ ...progressKey, mode }), progressKey, mode, banks[mode], answerPools[mode]));
     setReady(true);
-  }, [progressKey, banks]);
+  }, [progressKey, banks, answerPools]);
 
   function save(next: VocabularySession, previous: unknown = progressStore.get({ ...progressKey, mode: next.config.mode })) {
     setStorageError(!progressStore.save(createSavedProgress(next, previous)));
@@ -24,7 +24,7 @@ export default function GameSession({ banks, topicName, levelName, progressKey }
   }
 
   function start(mode: GameMode) {
-    const existing = readStoredSession(progressStore.get({ ...progressKey, mode }), progressKey, mode, banks[mode]);
+    const existing = readStoredSession(progressStore.get({ ...progressKey, mode }), progressKey, mode, banks[mode], answerPools[mode]);
     const next = existing && !getStats(existing).finished ? existing : createSession({ ...progressKey, mode, questionCount: 10 }, banks[mode]);
     if (next) save(next, existing && getStats(existing).finished ? createSavedProgress(existing) : progressStore.get({ ...progressKey, mode }));
   }
@@ -39,7 +39,7 @@ export default function GameSession({ banks, topicName, levelName, progressKey }
     {!ready ? <p className="game-loading" role="status">Getting your game ready…</p> : session ? <VocabularyGame session={session} topicName={topicName} levelName={levelName} onAction={act} onBack={() => { focusPicker.current = true; setSession(null); }} /> : <section className="game-picker" aria-labelledby="game-picker-heading">
       <h3 id="game-picker-heading" className="visually-hidden" tabIndex={-1} ref={node => { if (node && focusPicker.current) { node.focus(); focusPicker.current = false; } }}>Choose a game</h3>
       <div className="game-mode-grid">{gameModes.map(mode => {
-        const saved = readStoredSession(progressStore.get({ ...progressKey, mode: mode.id }), progressKey, mode.id, banks[mode.id]);
+        const saved = readStoredSession(progressStore.get({ ...progressKey, mode: mode.id }), progressKey, mode.id, banks[mode.id], answerPools[mode.id]);
         const continueRound = saved && !getStats(saved).finished;
         const count = continueRound ? saved.questions.length : Math.min(10, banks[mode.id].length);
         return <button className={`game-mode-card mode-${mode.id}`} key={mode.id} disabled={!count} onClick={() => start(mode.id)}>

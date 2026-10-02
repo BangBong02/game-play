@@ -61,7 +61,7 @@ export function createSavedProgress(session: VocabularySession, previous?: unkno
 }
 
 // Keep the exact question order/options on reload. Old v1 rounds are validated and read without deleting them.
-export function readStoredSession(value: unknown, key: ProgressKey, mode: GameMode, bank: Question[]): VocabularySession | null {
+export function readStoredSession(value: unknown, key: ProgressKey, mode: GameMode, bank: Question[], answerPool?: string[]): VocabularySession | null {
   if (!value || typeof value !== 'object') return null;
   const saved = value as Record<string, unknown>;
   if (saved.language !== key.language || saved.level !== key.level || saved.topic !== key.topic) return null;
@@ -82,7 +82,7 @@ export function readStoredSession(value: unknown, key: ProgressKey, mode: GameMo
   const session = candidate as VocabularySession;
   if (!session.config || session.config.language !== key.language || session.config.level !== key.level || session.config.topic !== key.topic || session.config.mode !== mode ||
     !Array.isArray(session.questions) || !session.questions.length || session.questions.length !== session.config.questionCount || new Set(session.questions.map(question => question?.id)).size !== session.questions.length) return null;
-  const allowedAnswers = new Set(bank.flatMap(question => question.kind === 'choice' ? question.options : []));
+  const allowedAnswers = new Set(answerPool ?? bank.flatMap(question => question.kind === 'choice' ? question.options : []));
   const valid = session.questions.every(question => {
     if (!isValidQuestion(question)) return false;
     const current = bank.find(item => item.id === question.id);

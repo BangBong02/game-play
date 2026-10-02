@@ -9,7 +9,7 @@ const topics = await topicRepository.list(language.id);
 const levelWords = await wordRepository.list(language.id, level.id);
 const topicCards = await Promise.all(topics.map(async topic => {
   const words = await wordRepository.list(language.id, level.id, topic.id);
-  return { ...topic, count: words.length, wordIds: words.map(word => `${word.language}-${word.id}`) };
+  return { ...topic, count: words.length, wordIds: words.map(word => word.id) };
 }));
 ---
 <BaseLayout title={`${level.name} ${language.name} ${skill.name} games`} language={language.id}>

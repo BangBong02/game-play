@@ -55,7 +55,7 @@ export function generateQuestions(words: Word[], mode: GameMode, pool: Word[] = 
   const ids = new Set<string>();
   const spellings = new Set<string>();
   for (const word of words) {
-    const id = `${word.language}-${word.id}`;
+    const id = word.id;
     const spelling = `${word.language}:${normalizeAnswer(word.word)}`;
     if (ids.has(id) || spellings.has(spelling) || !isWordEligible(word, mode)) continue;
     const reverse = mode !== 'word-to-meaning';

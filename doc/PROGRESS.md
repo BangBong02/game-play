@@ -8,11 +8,13 @@ Cập nhật gần nhất: **2026-10-02** (Asia/Bangkok).
 | --- | --- | --- |
 | 0 — Base và game demo | Hoàn thành | Astro/React/TypeScript, routing theo data, Multiple Choice, localStorage |
 | 1 — Astro content và SEO | Hoàn thành | HTML vocabulary, Content Collections local, bài viết Astro, game island |
-| 2 — UX và nội dung local | Đang thực hiện | UI/UX và data layer cho level thật đã cập nhật; chưa nhập Easy 300, cần xác nhận nguồn/rank |
+| 2 — UX và nội dung local | Đang thực hiện | UI/UX và Vocabulary Data Model v2; chưa nhập Easy 300, cần xác nhận nguồn/curriculum |
 | 3 — Vocabulary Game Engine v1 | Hoàn thành | 4 mode, session/scoring chung, SVG local, progress v2 và migration v1; tests/build/browser pass |
 | 4 — Phát hành static | Hoàn thành | Worker game-play-vn trong account maotuankiet77; GitHub main tự test/build/deploy, SEO/404 và game public pass |
 
 Phạm vi/tiêu chí từng phase: [PHASES.md](PHASES.md).
+
+Data model hiện tại: **level = curriculum difficulty; learningRank = teaching order; frequencyRank = optional reference metadata**. Filter dựa vào field level và sort learningRank ASC, không dùng frequency cutoff. Các mục nhật ký trước task Vocabulary Data Model v2 mô tả behavior lịch sử, không phải quy tắc level hiện tại.
 
 ## Mốc `v0.1.0-base`
 
@@ -216,6 +218,28 @@ Validation:
 
 README/PHASES cập nhật API, schema, eligibility, counts và cách chuẩn bị import. Phase 2 vẫn đang thực hiện; bước tiếp theo là xác nhận nguồn/licence và kiểm tra dữ liệu Easy 300 theo từng phần, chưa tự nhập. Không commit/push/deploy; giữ HEAD/tag cũ.
 
+### 2026-10-02 — Vocabulary Data Model v2
+
+Tiếp tục từ working tree sạch tại `222eb82`. Tách **level = curriculum difficulty**, **learningRank = teaching order**, **frequencyRank = optional reference metadata**. Repository quyết định membership bằng field level, sort learningRank ASC; không dùng frequencyRank hoặc teaching-order range để suy level. Config giữ thứ tự Easy/Medium/Hard và đổi maxRank thành targetWordCount, mục tiêu khoảng 300/1.200/3.000 từ cumulative.
+
+- API repository giữ tham số hiện có và mặc định cumulative: Easy chỉ easy; Medium easy + medium; Hard cả ba. `new-only` lấy đúng field level được chọn. Chưa có UI chọn progression.
+- Migrate đủ 20 từ demo: 11 easy, 7 medium, 2 hard. Teaching order minh họa 1–11 / 301–307 / 1.201–1.202; chưa có frequencyRank đáng tin nên để undefined. Counts cumulative giữ 11/18/20; Animals 6/9/10, Food 6/7/7, Colors 0/3/4. Multiple topics và eligibility ngoài React giữ nguyên.
+- Word.id chuyển sang string cố định `en-1`…`en-20`, trùng ID câu hỏi cũ; gán rõ từng record, không derive từ array index/spelling. Generator dùng id trực tiếp. Không thay storage key/version hoặc xóa dữ liệu; từ mới có thể dùng slug ID cố định như en-dog.
+- Sửa lỗi resume được tái hiện trên Colors Medium: distractor cũ thuộc level hợp lệ nhưng không có trong bank mới sau shuffle làm round bị bỏ. Astro truyền pool đáp án đã lọc language/curriculum vào phần validation; vẫn từ chối đáp án đã ra ngoài pool. Không đổi scoring, transitions, mode picker hoặc UI.
+- Giữ Astro routing/content/SEO, React island và bốn mode. Topic rỗng không có game session. README/PHASES ghi rõ curriculum thay cho frequency cutoff; nhật ký cũ giữ để đối chiếu lịch sử và có chú thích model hiện tại ở đầu tài liệu.
+
+Validation đã xác nhận:
+
+- `npm test`: 25/25 pass. Update tests rank cũ sang membership curriculum; thêm sorting độc lập frequencyRank (Easy frequency 5000 hoặc undefined vẫn Easy), ID/session preservation và regression resume theo full curriculum pool. Tests v1/v2, eligibility, multi-topic, empty result và bốn mode vẫn pass.
+- `npm run build` cuối với SITE_URL production: 34 trang, Astro/TypeScript 0 errors/warnings/hints. Đã sửa inference level bị widen thành string trong array.map bằng `satisfies Word[]`, không dùng cast/suppress. Project chưa có script lint; git diff --check pass.
+- HTTP preview: 33 HTML routes trả 200 và khớp build, canonical đúng; tám topic có data giữ một H1/table/island, rows đúng tập curriculum và learningRank ASC. Mười topic rỗng không có island/table/Play anchor; ba bài viết không có island; 20 SVG trả 200.
+- Chrome Easy: counts và HTML Animals đúng 6 từ; result 6/6 của bản trước migration khôi phục được. Word → Meaning chơi đủ 6/6 bằng keyboard Enter, feedback/Next/result hoạt động.
+- Chrome Medium: Animals 9/Food 7/Colors 3, tổng 18. Lỗi resume đã tái hiện trước sửa và result cũ 3/3 đã khôi phục sau sửa. Meaning → Word chơi đủ 3/3; reload sau câu đầu giữ prompt/options/feedback/progress, kể cả đáp án fallback cùng level.
+- Chrome Hard: Animals 10/Food 7/Colors 4, tổng 20. Type the Word khôi phục round chưa xong từ bản trước; chơi đủ 3/4 (75%) với answer sai và chữ hoa/khoảng trắng, reload result giữ 75%. Image → Word chơi đủ 4/4 (100%), mode lưu riêng; navigation/result/Back to topic hoạt động.
+- Direct URL Easy Colors có empty state, không có game. Console trên tab kiểm tra không error/warning. Task này kiểm tra desktop; responsive/CSS không thay đổi.
+
+Phase 2 vẫn đang thực hiện. Chưa curate/import Easy 300, chưa thêm dependency/PixiJS/audio/backend. Bước tiếp theo: xác nhận curriculum và nghĩa, nhập từng phần với level easy/learningRank/ID cố định; frequencyRank chỉ optional metadata khi có nguồn. Không commit/push/deploy, HEAD vẫn `222eb82`.
+
 ## Cách cập nhật
 
 Sau mỗi task:
@@ -225,4 +249,4 @@ Sau mỗi task:
 3. Cập nhật ngày gần nhất. Chỉ đổi PHASES khi phạm vi hoặc tiêu chí thay đổi.
 4. Cập nhật README khi cách chạy hoặc kiến trúc thay đổi; tránh chép lại toàn bộ progress.
 
-Việc tiếp theo hiện tại: người dùng review và tự commit; xác nhận nguồn/licence/rank cho Easy 300 trước khi nhập nội dung Phase 2.
+Việc tiếp theo hiện tại: người dùng review và tự commit; xác nhận nguồn/licence, curriculum và thứ tự học cho Easy 300 trước khi nhập nội dung Phase 2.

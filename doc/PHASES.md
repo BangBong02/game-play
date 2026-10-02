@@ -10,7 +10,7 @@ Phạm vi:
 
 - Astro + React + TypeScript strict, CSS thuần.
 - Routing theo language/level/skill/topic, ba level Easy/Medium/Hard.
-- Dataset local chung, lọc level theo rank; topic cấu hình riêng.
+- Dataset local chung, lọc language/curriculum level/topic; topic cấu hình riêng.
 - Một game Multiple Choice nhận question data độc lập với dataset.
 - Đáp án đúng/sai, Next, score, result, Play again.
 - Progress bằng localStorage, khôi phục lượt sau reload.
@@ -43,15 +43,16 @@ Phạm vi UI/UX đã được yêu cầu:
 Phạm vi nội dung còn cần xác nhận:
 
 - Người dùng review demo, xác nhận learning flow và cấu trúc nội dung.
-- Xác nhận nguồn dataset và rank thật; thay rank minh họa trước khi công bố quy mô từ vựng thực tế.
+- Xác nhận nguồn dataset và curriculum được curate, thứ tự dạy và nghĩa; frequency metadata chỉ bổ sung khi có nguồn tham khảo.
 - Mở rộng topic/từ vựng và bài viết từng phần, không tạo hàng nghìn từ một lần.
 - Sửa các vấn đề UX/accessibility được xác nhận qua sử dụng thực tế.
 
 Phạm vi chuẩn bị data đã được yêu cầu trước khi nhập Easy 300:
 
-- Centralize range cumulative và `new-only`; repository lọc language/level/topic cho cả HTML và game.
-- Schema Word có metadata tùy chọn, nhiều topic và `visual`; helper eligibility ngoài React cho mode hiện tại và quy tắc image-match/listening tương lai.
-- Giữ 20 từ demo, phân rank qua các ngưỡng để test; count theo data đã lọc và HTML empty state không tạo game session.
+- Vocabulary Data Model v2: `level = curriculum difficulty`, `learningRank = teaching order`, `frequencyRank = optional reference metadata`; không dùng frequency cutoff để quyết định level.
+- Centralize thứ tự level, cumulative và `new-only`; repository lọc field level/language/topic và sort learningRank ASC cho cả HTML và game. Quy mô mục tiêu khoảng 300/1.200/3.000 từ curriculum không giới hạn membership bằng rank.
+- Schema Word có ID string cố định, metadata tùy chọn, nhiều topic và `visual`; helper eligibility ngoài React cho mode hiện tại và quy tắc image-match/listening tương lai.
+- Migrate 20 từ demo sang level và learningRank rõ ràng; count theo data đã lọc và HTML empty state không tạo game session.
 - Chỉ chuẩn bị data layer và tests, chưa nhập 300/1.200/3.000 từ hay triển khai image-match/audio/backend.
 
 Hoàn thành khi UI/UX được người dùng review, nội dung đã chọn được kiểm tra đúng level/topic, và flow desktop/mobile không có regression. Quy mô dataset và nội dung cần được thống nhất trước khi mở rộng.
@@ -67,7 +68,7 @@ Phạm vi đã được yêu cầu:
 - Progress v2 riêng theo mode, giữ kết quả gần nhất và đọc/migrate round v1 mà không xóa dữ liệu cũ.
 - Dataset demo 20 từ, SVG local; không thêm dependency/backend/timer/audio/XP.
 
-Hoàn thành khi unit tests, build, bốn flow browser desktop/mobile, reload và HTML SEO pass. Trạng thái và bằng chứng ghi trong PROGRESS.md. Phase 2 về nguồn/rank thật vẫn cần xác nhận riêng.
+Hoàn thành khi unit tests, build, bốn flow browser desktop/mobile, reload và HTML SEO pass. Trạng thái và bằng chứng ghi trong PROGRESS.md. Phase 2 về nguồn/curriculum thật vẫn cần xác nhận riêng.
 
 ## Phase 4 — Phát hành static website
 
