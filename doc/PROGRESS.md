@@ -10,7 +10,7 @@ Cập nhật gần nhất: **2026-10-02** (Asia/Bangkok).
 | 1 — Astro content và SEO | Hoàn thành | HTML vocabulary, Content Collections local, bài viết Astro, game island |
 | 2 — UX và nội dung local | Chưa bắt đầu | Chờ review demo và xác nhận nguồn dataset/rank |
 | 3 — Vocabulary Game Engine v1 | Hoàn thành | 4 mode, session/scoring chung, SVG local, progress v2 và migration v1; tests/build/browser pass |
-| 4 — Phát hành static | Hoàn thành | Worker game-play ở đúng account maotuankiet77; URL public, canonical/404, game desktop/mobile và reload pass |
+| 4 — Phát hành static | Hoàn thành | Worker game-play-vn trong account maotuankiet77; GitHub main tự test/build/deploy, SEO/404 và game public pass |
 
 Phạm vi/tiêu chí từng phase: [PHASES.md](PHASES.md).
 
@@ -120,9 +120,19 @@ Phase 4 hoàn thành. Thay đổi deploy hiện nằm trong working tree, chưa 
 
 Người dùng đã kết nối GitHub `BangBong02/game-play` vào account maotuankiet77 và tạo Worker `game-play-vn`. Khi có hai Worker, đã hỏi và người dùng chọn dùng Worker mới. Giữ Worker `game-play` cũ; đổi tên trong `wrangler.jsonc` sang `game-play-vn`, giữ account ID. Đã xác minh phiên dashboard vẫn là `nguyenducbang.uit@gmail.com`.
 
-Workers Builds dùng branch `main`, root `/`, deploy command `npx wrangler deploy`. Đã đặt build command `npm test && SITE_URL=https://game-play-vn.maotuankiet77.workers.dev npm run build` để kiểm tra game và build canonical đúng domain. GitHub hiện mới ở commit base `52f00a5`; cần push commit Engine v1 có sẵn và cấu hình deploy lên main, rồi chờ build tự động và kiểm tra bản public mới. Build dùng API token được cấu hình bởi người dùng, độc lập phiên OAuth CLI.
+Workers Builds dùng branch `main`, root `/`, deploy command `npx wrangler deploy`. Đã lưu build command `npm test && SITE_URL=https://game-play-vn.maotuankiet77.workers.dev npm run build` bằng phiên nguyenducbang.uit để kiểm tra game và build canonical đúng domain. GitHub ban đầu mới ở commit base `52f00a5`; đã push commit Engine v1 có sẵn và commit cấu hình deploy `225f087` lên main. Build dùng `game-play-vn build token` đã được người dùng cấu hình, độc lập phiên OAuth CLI; không tạo token mới hay mở thêm quyền GitHub.
 
-Trạng thái: đang triển khai; chưa xác nhận build/deploy tự động hoàn thành. Validation local trước khi đổi Worker: 14/14 tests, 25 trang, 0 errors/warnings/hints. Sẽ cập nhật kết quả build từ Git và URL public sau khi xác nhận.
+Kết quả đã xác nhận:
+
+- Git push lên `BangBong02/game-play` main thành công, kích hoạt build tự động `8e6f724c-2eb0-4bef-b72d-8c976eabf8fe` cho commit `225f087`.
+- Build Linux Cloudflare: Node 24.18.0, npm 10.9.2, `npm clean-install` thành công; 14/14 tests, Astro check 0 errors/warnings/hints, 25 trang được tạo. Log báo cả build và deploy command thành công.
+- Version từ GitHub: `e78b3ecd-27ef-4fac-b45f-4e8f8642aeeb`, URL https://game-play-vn.maotuankiet77.workers.dev.
+- Local cùng cấu hình: tests/build/dry-run pass, canonical dùng domain mới.
+- HTTP public mới: 51 route/assets trả 200; canonical trên 23 trang content đúng domain/path; chín trang vocabulary giữ bảng HTML và game island. Slash redirect 307, custom 404 đúng status/body.
+- Browser public: bốn mode có trong selector; Word → Meaning trên Colors hoàn thành 3/4 (75%) với answer đúng/sai, Enter, Next, feedback và score giữ sau reload; console không error/warning.
+- Đã cập nhật README cho auto deploy và cách deploy CLI dự phòng. Worker `game-play` cũ giữ bản trước; localStorage của hai domain là độc lập, không tự chuyển progress giữa URL cũ và mới.
+
+Kết nối GitHub và deploy từ Git hoàn thành; giữ tag `v0.1.0-base`. Nội dung/rank vẫn là demo, Phase 2 chưa triển khai.
 
 ## Cách cập nhật
 
