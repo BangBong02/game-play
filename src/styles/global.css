@@ -165,7 +165,7 @@ a.learning-card:active { transform: translateY(1px); }
 .article-links { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; margin-top: 20px; }
 .article-links a:not(.primary-button):not(.secondary-button) { color: var(--green); font-size: 14px; text-decoration: underline; text-underline-offset: 4px; }
 .practice-section { scroll-margin-top: 16px; }
-.practice-intro h2 { font-size: 24px; }
+.practice-intro h2 { font-size: 24px; margin-top: 12px; }
 .practice-intro > p { font-size: 14px; color: var(--muted); line-height: 1.7; margin-top: 8px; }
 .game-picker { margin-top: var(--space-2); }
 .game-picker h3 { font-size: 26px; margin-bottom: 8px; letter-spacing: -.7px; }
@@ -188,21 +188,24 @@ a.learning-card:active { transform: translateY(1px); }
 .text-button { background: var(--bg); border: 1px solid var(--border); color: var(--green); border-radius: var(--radius-sm); padding: 10px 12px; min-height: 44px; font-size: 13px; font-weight: 700; }
 .text-button:hover { border-color: var(--green); }
 .session-topic { font-family: 'Manrope', sans-serif; font-size: 19px; font-weight: 800; }
+.session-topic small { display: block; color: var(--muted); font-family: 'DM Sans', sans-serif; font-size: 11px; font-weight: 500; margin-top: 3px; }
 .session-mode { color: var(--muted); font-size: 12px; }
-.game-progress-label { display: flex; justify-content: space-between; align-items: center; color: var(--muted); font-size: 12px; }
-.game-progress-label strong { color: var(--text); font-size: 16px; font-family: 'Manrope', sans-serif; }
+.round-progress { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px 16px; margin: 16px 0; }
+.round-count { color: var(--muted); font-size: 12px; white-space: nowrap; }
+.round-count strong { color: var(--text); font-size: 14px; margin-left: 4px; }
+.word-steps { display: flex; gap: 6px; list-style: none; padding: 0; margin: 0; }
+.word-steps li { display: grid; place-items: center; width: 28px; height: 28px; border: 1px solid var(--border); border-radius: 9px; background: var(--neutral-soft); color: var(--muted); font-size: 11px; font-weight: 700; }
+.word-steps .completed { background: var(--green); color: var(--surface); border-color: var(--green); }
+.word-steps .current { outline: 2px solid var(--green); outline-offset: 2px; }
+.word-steps .current:not(.completed) { background: var(--green-soft); color: var(--green); }
 progress { appearance: none; width: 100%; display: block; height: 10px; border: none; border-radius: 20px; background: var(--disabled); overflow: hidden; }
 progress::-webkit-progress-bar { background: var(--disabled); }
 progress::-webkit-progress-value { background: var(--green); border-radius: 20px; }
 progress::-moz-progress-bar { background: var(--green); border-radius: 20px; }
-.progress-bar { margin: 10px 0 12px; }
-.game-score { display: flex; justify-content: center; gap: var(--space-3); font-size: 12px; color: var(--muted); margin-bottom: var(--space-2); }
 .question-card { background: var(--green-soft); border-radius: var(--radius-md); padding: 20px; text-align: center; }
-.question-tag { color: var(--green); font-size: 10px; letter-spacing: 1px; font-weight: 800; }
 .question-card h3 { color: var(--text); width: fit-content; max-width: 100%; font-size: clamp(34px, 4.5vw, 54px); line-height: 1.2; letter-spacing: -1.5px; margin: 12px auto 4px; border-radius: 8px; overflow-wrap: anywhere; }
-.question-image { display: block; max-width: 100%; width: 200px; height: auto; margin: 12px auto 0; }
-.image-question h3 { font-size: 20px; letter-spacing: -.5px; }
-.image-question .question-tag { display: none; }
+.question-image { display: block; max-width: 100%; width: 240px; height: auto; margin: 12px auto 0; }
+.image-question h3 { font-size: 16px; font-weight: 600; letter-spacing: 0; }
 .answer-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: var(--space-2); }
 .answer-button { display: flex; align-items: center; gap: 12px; min-height: 90px; min-width: 0; padding: 14px; background: var(--surface); border: 2px solid var(--border); border-bottom-width: 4px; border-radius: var(--radius-sm); text-align: left; font-size: 17px; font-weight: 700; color: var(--text); }
 .answer-button:not(:disabled):hover { border-color: var(--green); background: var(--green-soft); }
@@ -234,7 +237,6 @@ progress::-moz-progress-bar { background: var(--green); border-radius: 20px; }
 .primary-button:disabled { color: var(--neutral); background: var(--disabled); border-color: var(--border); }
 .secondary-button { border-color: var(--border); background: var(--surface); color: var(--green); }
 .secondary-button:hover { border-color: var(--green); background: var(--green-soft); }
-.keyboard-note { text-align: center; color: var(--muted); font-size: 11px; margin-top: 8px; }
 .game-result { background: var(--yellow-soft); border: 2px solid var(--yellow-border); border-radius: var(--radius-lg); padding: 28px; text-align: center; }
 .result-art { display: grid; place-items: center; width: 68px; height: 68px; border-radius: 22px; background: var(--surface); color: var(--yellow); font-size: 40px; margin: 0 auto 18px; transform: rotate(-8deg); }
 .game-result .eyebrow { color: var(--yellow); }
@@ -253,6 +255,7 @@ progress::-moz-progress-bar { background: var(--green); border-radius: 20px; }
 .game-page:has(.is-playing) .topic-header h1 { font-size: 24px; margin: 8px 0 18px; }
 .game-page:has(.is-playing) .topic-header > p, .game-page:has(.is-playing) .topic-header .article-links, .practice-section:has(.is-playing) .practice-intro { display: none; }
 .game-page:has(.is-playing) .game-heading { margin-top: 0; }
+.game-page:has(.is-playing) .game-heading .pill { display: none; }
 .notice { background: var(--yellow-soft); color: var(--yellow); border-radius: var(--radius-sm); padding: 16px 20px; font-size: 13px; line-height: 1.7; margin: 20px auto; max-width: 760px; }
 .notice a { text-decoration: underline; }
 .game-loading { padding: var(--space-5) 0; text-align: center; color: var(--muted); }
@@ -341,10 +344,13 @@ progress::-moz-progress-bar { background: var(--green); border-radius: 20px; }
   .session-toolbar { gap: 8px; }
   .session-topic { font-size: 17px; }
   .session-mode { width: 100%; text-align: center; }
+  .round-progress { flex-direction: column; align-items: flex-start; gap: 12px; }
+  .word-steps { width: 100%; gap: 4px; }
+  .word-steps li { width: auto; min-width: 0; flex: 1; max-width: 32px; height: 26px; border-radius: 8px; font-size: 10px; }
   .question-card { padding: 16px 12px; }
   .question-card h3 { font-size: 36px; letter-spacing: -1px; }
-  .image-question h3 { font-size: 18px; }
-  .question-image { width: 160px; }
+  .image-question h3 { font-size: 14px; }
+  .question-image { width: 200px; }
   .answer-grid { gap: 10px; }
   .answer-button { gap: 8px; font-size: 15px; padding: 12px; min-height: 94px; flex-wrap: wrap; align-content: center; }
   .answer-letter { width: 22px; height: 22px; font-size: 10px; }
@@ -371,11 +377,13 @@ progress::-moz-progress-bar { background: var(--green); border-radius: 20px; }
   .game-mode-card strong { font-size: 15px; }
   .game-mode-card > span:not(.mode-icon):not(.mode-action), .game-mode-card small { font-size: 12px; }
   .mode-action { font-size: 11px; }
-  .answer-grid { grid-template-columns: 1fr; }
+  .answer-letter { display: none; }
   .answer-button { min-height: 76px; flex-wrap: nowrap; }
   .game-controls { flex-direction: column; align-items: stretch; }
   .game-controls > .primary-button { width: 100%; }
-  .game-score { gap: 12px; font-size: 11px; }
+}
+@media (max-width: 320px) {
+  .answer-grid { grid-template-columns: 1fr; }
 }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }

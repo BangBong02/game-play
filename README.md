@@ -58,6 +58,8 @@ Trang topic có một H1, giới thiệu, hướng dẫn chơi và bảng từ/n
 
 UI dùng CSS thuần với màu xanh/cam/tím theo level, card chọn game lớn và feedback có text/icon. Topic card hiển thị progress lượt gần nhất cùng Play/Continue/Play again; khi đang chơi, header thu gọn để tập trung vào câu hỏi, còn bảng từ vẫn ở bên dưới. Illustration chữ trên homepage dùng HTML/CSS và plant SVG có sẵn.
 
+Màn chơi có một counter và dải mốc từng từ: số có viền là từ hiện tại, dấu ✓ là từ đã hoàn thành, số nhạt là từ sắp tới. Mốc biểu thị tiến trình, không phải đáp án đúng/sai; Correct/Incorrect/Accuracy chỉ tổng kết ở result. Sau khi trả lời, Next nhận focus để tiếp tục bằng Enter; không tự chuyển câu. Bộ chọn mode và màn chơi giữ ngữ cảnh level/Vocabulary, với mục tiêu meaning/recall/picture/spelling rõ ràng. Độ khó lấy từ dataset đã lọc rank theo level, không gán mode thành Easy hay Hard.
+
 ## Content Collections
 
 Ba collection `blog`, `grammar`, `guides` dùng Astro `file()` loader đọc JSON local. Schema kiểm tra title, description, language, draft và các section (heading, paragraphs, examples). Không CMS hay fetch API. Tham khảo [Astro Content Collections](https://docs.astro.build/en/guides/content-collections/).

@@ -34,8 +34,8 @@ const description = `Learn ${topicWords.length} ${language.name} words about ${t
       <div class="article-links"><a class="primary-button" href="#practice">Play the game ↓</a><a class="secondary-button" href="#word-list">Review the words</a></div>
     </header>
     <section id="practice" class="reading-width practice-section" aria-labelledby="practice-heading">
-      <div class="practice-intro"><h2 id="practice-heading">Choose a game</h2><p>Pick a game. Answer, check, then choose Next. Your round is saved on this device.</p></div>
-      <GameSession client:visible banks={banks} topicName={topic.name} progressKey={{ language: language.id, level: level.id, topic: topic.id }} />
+      <div class="practice-intro"><span class:list={['pill', level.color]}>{level.name} · {skill.name}</span><h2 id="practice-heading">Choose how to practice</h2><p>One topic, four ways to learn. Answer, check, then choose Next. Your round is saved on this device.</p></div>
+      <GameSession client:visible banks={banks} topicName={topic.name} levelName={level.name} progressKey={{ language: language.id, level: level.id, topic: topic.id }} />
       <noscript><p class="notice">Enable JavaScript to play. You can still read the full word list below.</p></noscript>
     </section>
     <section id="word-list" class="prose reading-width vocabulary-content" aria-labelledby="word-list-heading">

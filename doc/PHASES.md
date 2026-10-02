@@ -38,6 +38,7 @@ Phạm vi UI/UX đã được yêu cầu:
 - Làm mới giao diện bằng CSS thuần: palette thân thiện, card level/topic/mode rõ ràng, số lượng từ mục tiêu nổi bật.
 - Rút gọn màn chơi, đáp án lớn và feedback Correct!/Not quite có text/icon; giữ session, scoring, resume và HTML SEO hiện có.
 - Hiển thị progress trên topic card và Play/Continue/Play again theo lượt đã lưu; kiểm tra keyboard, desktop/mobile và reload.
+- Sau khi chơi thử Monster Vocab/Fast English bằng Chrome, rút gọn progress thành mốc từng từ, giữ thống kê đúng/sai ở result và Next thủ công; làm rõ ngữ cảnh level/kỹ năng và mục tiêu mode. Chỉ tham khảo interaction pattern, không copy UI/assets/source hay thêm PixiJS.
 
 Phạm vi nội dung còn cần xác nhận:
 

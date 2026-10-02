@@ -166,6 +166,33 @@ Validation:
 
 Phase 2 đang thực hiện; chưa mở rộng dataset/rank. Theo yêu cầu, thay đổi để trong working tree cho người dùng tự commit, chưa push/deploy và không đổi tag `v0.1.0-base`. Bản Cloudflare hiện tại vẫn là bản đã phát hành trước task này.
 
+### 2026-10-02 — Progress UX sau khi chơi thử game tham khảo
+
+Đã dùng Chrome integration để vào trang chủ [Games to Learn English](https://www.gamestolearnenglish.com/) và thực sự chơi:
+
+- [Monster Vocab](https://www.gamestolearnenglish.com/monster-vocab/): desktop, chọn Home và Play; trả lời đúng rug/cushion/dresser, chọn sai ở books tại câu 4/30 và quan sát màn Retry/Stop với đáp án cần nhớ. Progress là counter nhỏ; ✓/× ở ảnh chọn, các ảnh khác giảm nổi bật; câu đúng tự chuyển, câu sai kết thúc lượt đã thử.
+- [Fast English](https://www.gamestolearnenglish.com/fast-english/): Slow/Animals qua sáu câu đúng butterfly/snake/bull/mouse/chicken/fish, có cố ý chọn sai elephant ở snake. Sai giảm score 200 → 150 và giữ prompt cho chọn lại; đúng highlight ảnh rồi tự chuyển. Counter 1/80 → 6/80 nhỏ, có Score nhưng không có cặp Correct/Incorrect liên tục. Đã thử desktop và mobile, thấy ảnh xếp lại và prompt nổi bật.
+- Fast timed trên mobile: trả lời đúng bull, sau đó để hết thời gian; màn kết thúc hiển thị score 200, bảng high scores và New/Again. Không gửi score/tên lên website. Monster thử tới màn kết thúc do sai, Fast Slow không chơi đủ 80 câu; chỉ Fast timed được kiểm tra hết lượt.
+
+Pattern áp dụng: ưu tiên từ/ảnh/lựa chọn, counter gọn, feedback trực tiếp và tách thống kê khỏi lúc chơi. Lingoplay trước đó lặp counter, thanh progress, Correct/Incorrect và nhiều text; không thấy các từ đã hoàn thành. Đã thay bằng dải mốc từ (đã xong ✓ / hiện tại có viền / chưa đến), một counter và progress semantic cho accessibility. Dấu ✓ biểu thị hoàn thành, không biểu thị đúng; thống kê đúng/sai/accuracy vẫn ở result. Giữ feedback hiện tại và Next thủ công để đọc đáp án; focus tới Next sau submit, trở về câu hỏi khi chuyển từ hoặc result khi kết thúc.
+
+Bộ chọn mode giữ level/Vocabulary và ghi rõ mục tiêu meaning/recall/picture/spelling. Giữ routing level → skill → topic → mode; không gom các kỹ năng thành một danh sách game. Easy/Medium/Hard vẫn lọc nội dung theo rank; tất cả mode luyện cùng level đã chọn, bộ demo 20 từ chưa có độ khó khác nhau. Giảm text khi chơi, tăng ưu tiên ảnh và dùng đáp án hai cột trên điện thoại thông thường, một cột khi viewport CSS ≤ 320px.
+
+Giữ Astro SEO/content, React Vocabulary Engine, session/scoring, localStorage và bốn mode. Không thêm dependency/PixiJS, không tải hay sao chép artwork/branding/source của website tham khảo. Git bắt đầu task sạch ở `89aefaa`; không commit/push/deploy trong task này.
+
+Validation đã xác nhận:
+
+- `npm test`: 15/15 pass. Build cuối với SITE_URL production: 25 trang, Astro/TypeScript 0 errors/warnings/hints; project chưa có script lint riêng.
+- Desktop và mobile (override 390×844, CSS viewport thực tế 355px do zoom browser): cả bốn mode trên Colors chạy tới result. Word → Meaning 3/4 (75%), Meaning → Word 4/4 (100%), Image → Word 4/4 (100%), Type the Word 3/4 (75%); kiểm tra đúng/sai, khóa answer, Next thủ công và các mốc tăng 0 → 4.
+- Keyboard: Tab có focus nhìn thấy trên choice, Enter submit và tiếp tục; Next/See results nhận focus sau answer, heading nhận focus sau chuyển từ/result. Typing kiểm tra input rỗng, Backspace, chữ hoa và khoảng trắng đầu/cuối.
+- Reload Word → Meaning giữ chính xác prompt/options, feedback, mốc và focus Next; result 75% giữ sau reload. Restart desktop reset progress về 0, mốc đầu và feedback rỗng. Mobile typing reload giữ input sai, feedback, mốc 1 và focus Next; result 75% khôi phục khi mở lại topic, restart reset input rỗng/progress 0 và focus câu hỏi.
+- Topic card Colors phản ánh kết quả typing 3/4 correct và Play again; mode khác giữ round riêng. Ảnh ở Image → Word tải thành công; mobile không cuộn ngang ở các màn đã kiểm tra, console không error/warning.
+
+- Sau khi khôi phục Chrome integration, kiểm tra Animals có đủ 10 mốc ở override 320×800 (CSS width 291px): mốc hiện tại/đã xong đúng, không tràn ngang, đáp án một cột. Override 390×844 có đáp án hai cột; chọn sai ở duck giữ feedback dễ đọc, focus Next và mốc tăng 1 → 2. Đã reset viewport về mặc định; console sạch.
+- HTTP preview cuối: 24 HTML routes trả 200 và khớp build; chín trang vocabulary giữ một H1, bảng từ, một island và canonical đúng; ba bài blog/grammar/guides có HTML thật, không React island. `git diff --check` pass.
+
+Phase 2 vẫn đang thực hiện, chưa mở rộng dataset/rank. Tiếp theo là người dùng review progress UX và xác nhận nguồn/rank thật; bản sửa này chưa commit/push/deploy.
+
 ## Cách cập nhật
 
 Sau mỗi task:

@@ -2,10 +2,10 @@ import type { LevelId } from '../config/course';
 import type { Word } from '../types/content';
 
 export const gameModes = [
-  { id: 'word-to-meaning', name: 'Word → Meaning', description: 'Choose the meaning.', icon: 'Aa' },
-  { id: 'meaning-to-word', name: 'Meaning → Word', description: 'Find the English word.', icon: '↔' },
-  { id: 'image-to-word', name: 'Image → Word', description: 'Look and choose.', icon: '▧' },
-  { id: 'type-the-word', name: 'Type the Word', description: 'Type what you remember.', icon: '⌨' },
+  { id: 'word-to-meaning', name: 'Word → Meaning', description: 'Word meaning · Choose the Vietnamese meaning.', icon: 'Aa' },
+  { id: 'meaning-to-word', name: 'Meaning → Word', description: 'Word recall · Find the English word.', icon: '↔' },
+  { id: 'image-to-word', name: 'Image → Word', description: 'Picture vocabulary · Match the image to a word.', icon: '▧' },
+  { id: 'type-the-word', name: 'Type the Word', description: 'Spelling · Type the English word.', icon: '⌨' },
 ] as const;
 export type GameMode = typeof gameModes[number]['id'];
 export const isGameMode = (value: unknown): value is GameMode => gameModes.some(mode => mode.id === value);
