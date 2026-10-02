@@ -1,0 +1,39 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getGames, gameSkills } from '../../config/games';
+import { locales, messages } from '../../i18n';
+export function getStaticPaths() { return locales.map(locale => ({ params: { locale }, props: { locale } })); }
+const { locale } = Astro.props;
+const t = messages[locale];
+const games = getGames();
+---
+<BaseLayout title={t.hero} description={t.hero + ' ' + t.intro} locale={locale}>
+  <div class="page-container game-home">
+    <header class="game-first-hero"><h1>{t.hero}</h1><p>{t.intro}</p></header>
+    <section aria-label={t.games}>
+      <div class="game-filters" role="group" aria-label={t.games}>
+        {['all', ...gameSkills].map(skill => <button type="button" data-filter={skill} aria-pressed={skill === 'all'} disabled>{t[skill as 'all' | 'vocabulary' | 'spelling']}</button>)}
+      </div>
+      <p class="filter-count" role="status" data-filter-count data-unit={t.filterCount}>{games.length} {t.filterCount}</p>
+      <div class="home-game-grid">{games.map(game => <a class:list={['home-game-card', game.color]} href={`/${locale}/games/${game.slug}`} data-skills={game.skills.join(' ')}>
+        <div class="game-preview" aria-hidden="true"><img src={`/images/vocabulary/${game.preview}.svg`} alt="" width="160" height="120" /><span>{game.previewCaption}</span></div>
+        <div class="game-card-copy"><h2>{game.title[locale]}</h2><p>{game.description[locale]}</p><div class="game-skills">{game.skills.map(skill => <span>{t[skill]}</span>)}</div><strong>{t.play} <span aria-hidden="true">→</span></strong></div>
+      </a>)}</div>
+    </section>
+    <a class="home-learn-link" href={`/${locale}/learn`}>{t.library} →</a>
+  </div>
+</BaseLayout>
+<script>
+  const filters = document.querySelectorAll<HTMLButtonElement>('[data-filter]');
+  const cards = document.querySelectorAll<HTMLElement>('[data-skills]');
+  filters.forEach(button => {
+    button.disabled = false;
+    button.addEventListener('click', () => {
+      filters.forEach(filter => filter.setAttribute('aria-pressed', String(filter === button)));
+      let count = 0;
+      cards.forEach(card => { card.hidden = button.dataset.filter !== 'all' && !card.dataset.skills?.split(' ').includes(button.dataset.filter!); if (!card.hidden) count++; });
+      const status = document.querySelector<HTMLElement>('[data-filter-count]');
+      if (status) status.textContent = `${count} ${count === 1 ? 'game' : status.dataset.unit}`;
+    });
+  });
+</script>

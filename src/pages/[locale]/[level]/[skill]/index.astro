@@ -1,0 +1,6 @@
+---
+import { locales } from '../../../../i18n';
+import { levels } from '../../../../config/course';
+export function getStaticPaths() { return locales.flatMap(locale => levels.map(level => ({ params: { locale, level: level.id, skill: 'vocabulary' } }))); }
+return Astro.redirect(`/${Astro.params.locale}/games/word-match`);
+---

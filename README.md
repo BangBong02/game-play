@@ -1,136 +1,78 @@
 # Lingoplay
 
-Website học ngoại ngữ qua mini game. Hiện có Vocabulary Game Engine v1: 3 level, 6 topic hiển thị (3 topic chơi được), 4 mode và 20 từ mẫu English/nghĩa tiếng Việt. Chưa có tài khoản, backend hoặc database thật.
+Website học **tiếng Anh qua game**, với giao diện English (`/en`) hoặc tiếng Việt (`/vi`). Mở trang là thấy bốn game, lọc theo kỹ năng rồi chơi. Hai locale dùng cùng dataset tiếng Anh và cùng tiến trình localStorage. Hiện có 20 từ demo, ba topic có nội dung (Animals/Food/Colors); chưa có tài khoản/backend/database.
 
 ## Chạy project
 
-Yêu cầu Node.js theo `engines` trong `package.json`.
+Node.js theo `engines` trong package.json.
 
 ```bash
 npm install
 npm run dev
-npm run test
+npm test
 npm run build
+npm run test:site
 npm run preview
 ```
 
-Trên PowerShell nếu `npm.ps1` bị chặn, dùng `npm.cmd` thay `npm`.
+PowerShell bị chặn npm.ps1 thì dùng `npm.cmd`. Build bao gồm Astro/TypeScript check; `test:site` kiểm tra HTML đã build (chạy sau build). Project chưa có script lint.
 
-## Tech stack & cấu trúc
+## Architecture
 
 **Astro = website/content/SEO. React = game interaction. Data = độc lập.**
 
-Astro tạo HTML tĩnh và routing cho level, vocabulary, blog, grammar, guides. React chỉ hydrate island `GameSession` và các câu hỏi/score/progress/result bên trong khi game xuất hiện trong viewport (`client:visible`). Không React router hay SPA; các navigation dùng anchor và Astro page. TypeScript strict; CSS thuần.
+Astro prerender homepage, game pages và Content Collections blog/grammar/guides. Homepage có card HTML thật và filter bằng Browser API, không hydrate React. GameSession là React island `client:load` trên từng trang game; không React router/SPA. Game pages có bảng vocabulary HTML dưới game, đọc được khi tắt JavaScript.
+
+- `src/i18n.ts`: locale EN/VI, UI messages; `learningLanguage = 'en'` cố định và độc lập locale.
+- `src/config/games.ts`: bốn game, localized title/description, skills nhiều giá trị, status, order. Homepage chỉ hiển thị game available và category có game thật.
+- `src/config/course.ts`: curriculum metadata và helper compatibility, không có level selector.
+- `src/data/content.ts`, `src/types/content.ts`: Word/Topic Data Model v2.
+- `src/repositories/content.ts`: dữ liệu local, `getWordsForProgress` theo learningRank.
+- `src/game/*`: generator, eligibility, transitions/scoring dùng chung cho bốn game.
+- `src/components/game/*`: chọn topic tùy ý, session, câu hỏi, progress/result.
+- `src/services/progress.ts`: localStorage v3 và migration nhỏ từ v1/v2.
+- `src/content.config.ts`, `src/data/*.json`: ba Astro Content Collections local, không CMS/API.
+- `src/pages/[locale]/*`: routing tĩnh, SEO, redirects URL cũ.
+- `tests/game.test.ts`: Node test runner, không dependency test mới.
+
+## Product flow và routes
 
 ```text
-src/
-  config/course.ts          # Language, curriculum levels, progression, skill, URL
-  config/content.ts         # Metadata cho blog/grammar/guides
-  content.config.ts         # Astro Content Collections, schema + local file loaders
-  data/content.ts           # Một dataset Word chung và topic
-  data/*.json               # Nội dung blog/grammar/guides local
-  types/content.ts          # Word/Topic; URL ảnh và audio tùy chọn
-  repositories/content.ts   # Interface async + implementation đọc local
-  game/vocabulary.ts        # 4 mode, generator, session, transitions, scoring
-  game/eligibility.ts       # Điều kiện tham gia game, độc lập React
-  components/               # Card/illustration Astro + React game/session
-  services/progress.ts      # ProgressStore dùng localStorage
-  layouts/BaseLayout.astro  # Header, footer, SEO
-  pages/                    # Routing theo data với getStaticPaths
-  styles/global.css         # Desktop/mobile, focus, reduced motion
-tests/game.test.ts           # Node test runner, không thêm framework test
-public/images/vocabulary/    # 20 SVG local cho Image → Word
+/ → /en
+/en hoặc /vi → All / Vocabulary / Spelling → chọn game → Play
+                                                └ chọn topic tùy ý
+/en/games/word-match       # Word → Meaning
+/en/games/find-the-word    # Meaning → Word
+/en/games/picture-pick     # Image → Word
+/en/games/spell-the-word   # Type the Word
+/vi/games/[cùng slug]      # UI tiếng Việt, vẫn học English
+/en/learn và /vi/learn
+/[locale]/learn/blog/little-learning-habits
+/[locale]/learn/grammar/a-and-an
+/[locale]/learn/guides/play-and-review
 ```
 
-## Demo flow
+Header Games / Learn / EN VI giữ cùng route, topic query và hash khi đổi locale. Topic chỉ là bộ lọc nội dung, không phải trình độ. Listening/Grammar chưa có engine nên không tạo filter rỗng. Bài viết hiện là nội dung tiếng Anh; navigation/library UI được dịch, article có `lang="en"` rõ ràng.
 
-`/` chuyển đến `/en`.
+Bookmark `/en/easy`, `/en/medium`, `/en/hard` chuyển về `/en`. Index vocabulary cũ chuyển tới Word Match; topic URL cũ chuyển tới `/en/games/word-match?topic=animals` tương ứng. Redirects tĩnh do Astro tạo HTML meta refresh; không thay cấu hình deploy. Internal links chỉ dùng routes mới.
 
-```text
-/en
-/en/easy
-/en/easy/vocabulary
-/en/easy/vocabulary/animals
-```
+## Game, curriculum và progress
 
-Medium/Hard dùng cùng cấu trúc; round tối đa 10 câu. Số từ demo được lọc thật theo level:
+Bốn game dùng chung engine. Choice có bốn đáp án; typing bỏ qua hoa/thường và khoảng trắng đầu/cuối. Feedback khóa câu sau submit, Next thủ công và nhận focus; dải mốc hiển thị câu hiện tại/đã xong, không thêm counters đúng/sai liên tục. Result có score/accuracy, Chơi lại và Từ mới nếu còn nhóm tiếp theo.
 
-| Level | Tổng từ duy nhất | Animals | Food | Colors |
-| --- | ---: | ---: | ---: | ---: |
-| Easy | 11 | 6 | 6 | 0 |
-| Medium | 18 | 9 | 7 | 3 |
-| Hard | 20 | 10 | 7 | 4 |
+`getWordsForProgress(dataset, { startRank, count, topic? })` luôn lấy English, sort learningRank ASC rồi lấy count từ. Bắt đầu rank 1, tối đa 10 từ/lượt; câu trong nhóm được shuffle. Hoàn thành nhóm, Từ mới lấy rank sau từ cuối nhóm. Không có adaptive algorithm. Hết dataset thì tiếp tục ôn lại bằng Chơi lại.
 
-`chicken` thuộc cả Animals và Food nên tổng các topic có thể lớn hơn số từ duy nhất. Skill chưa triển khai và topic chưa có data hiển thị Coming soon trên danh sách. URL của topic đã cấu hình nhưng rỗng có HTML thông báo thân thiện, link quay lại và không có React game island.
+Word giữ ID cố định, level curriculum metadata, learningRank teaching order, frequencyRank tham khảo tùy chọn, topics[], visual/image/audio. Không dùng locale hoặc frequencyRank để chọn ngôn ngữ học/trình độ. 20 từ demo có rank 1–11, 301–307, 1201–1202; selector xử lý khoảng trống bằng sort/slice, không coi đó là 1.202 từ đã có. Helper level cumulative/new-only giữ cho validation và compatibility, không tham gia flow game mới.
 
-Trang topic có một H1, giới thiệu, hướng dẫn chơi và bảng từ/nghĩa render thành HTML bằng Astro từ cùng dataset mà generator dùng. JavaScript bị tắt vẫn đọc được nội dung; chỉ game cần JavaScript. Title/description riêng theo topic, canonical được thêm khi có `SITE_URL`.
-
-UI dùng CSS thuần với màu xanh/cam/tím theo level, card chọn game lớn và feedback có text/icon. Topic card hiển thị progress lượt gần nhất cùng Play/Continue/Play again; khi đang chơi, header thu gọn để tập trung vào câu hỏi, còn bảng từ vẫn ở bên dưới. Illustration chữ trên homepage dùng HTML/CSS và plant SVG có sẵn.
-
-Màn chơi có một counter và dải mốc từng từ: số có viền là từ hiện tại, dấu ✓ là từ đã hoàn thành, số nhạt là từ sắp tới. Mốc biểu thị tiến trình, không phải đáp án đúng/sai; Correct/Incorrect/Accuracy chỉ tổng kết ở result. Sau khi trả lời, Next nhận focus để tiếp tục bằng Enter; không tự chuyển câu. Bộ chọn mode và màn chơi giữ ngữ cảnh level/Vocabulary, với mục tiêu meaning/recall/picture/spelling rõ ràng. Độ khó lấy từ curriculum level do Lingoplay curate, không gán mode thành Easy hay Hard.
+Progress mới có key `lingoplay:v3:en:[game-slug]:[topic]` (không locale/difficulty), lưu startRank, config/questions/answers/index, completedWordIds, lastResult và timestamp. Reload và đổi locale giữ câu/options/result. Progress theo game/topic, không đồng bộ giữa các topic. Khi không có v3, đọc topic round v1/v2 hợp lệ mới nhất và copy sang v3; không xóa key cũ. Storage hỏng hoặc bị chặn vẫn chơi được. ID hoàn thành ghi khi kết thúc lượt, không là mastery/adaptive score.
 
 ## Content Collections
 
-Ba collection `blog`, `grammar`, `guides` dùng Astro `file()` loader đọc JSON local. Schema kiểm tra title, description, language, draft và các section (heading, paragraphs, examples). Không CMS hay fetch API. Tham khảo [Astro Content Collections](https://docs.astro.build/en/guides/content-collections/).
-
-```text
-/en/learn
-/en/learn/blog
-/en/learn/blog/little-learning-habits
-/en/learn/grammar/a-and-an
-/en/learn/guides/play-and-review
-```
-
-Mỗi collection có một bài mẫu để kiểm tra flow. Thêm entry vào JSON với `id` duy nhất, ổn định (dùng slug như `a-and-an`), `language`, `title`, `description`, `sections`; `getStaticPaths` tự tạo trang danh sách và bài viết lúc build. `draft: true` loại bài khỏi danh sách lẫn routing. Bài viết render thành HTML trong Astro, không có React island. Footer có link vào Learning library.
-
-## Game & data
-
-Flow: **Astro page → repository → generateQuestions → GameSession → VocabularyGame → choice/typing renderer**.
-
-Astro chuẩn bị question banks từ dataset lọc language/level/topic. React chọn mode và tạo session theo config `{ language, level, topic, mode, questionCount }`. Session giữ questions, index và answers; correct/incorrect/progress/percentage derive từ answers, không duplicate state. Generator, shuffle, transition và scoring độc lập UI, có thể truyền random cố định để test.
-
-- **Word → Meaning:** chọn nghĩa tiếng Việt từ từ English.
-- **Meaning → Word:** chọn từ English từ nghĩa tiếng Việt.
-- **Image → Word:** chọn từ English từ SVG local có alt text.
-- **Type the Word:** nhập từ English từ nghĩa tiếng Việt; trim và bỏ qua hoa/thường.
-
-Helper `generateDistractors` dùng chung cho ba choice mode: ưu tiên cùng topic, fallback pool đã lọc language/level và loại đáp án trùng/đồng nghĩa với đáp án đúng. Khi không đủ 4 lựa chọn hợp lệ, bỏ câu đó và disable mode nếu bank rỗng; typing vẫn chơi được với dataset nhỏ. Thứ tự câu hỏi và options được shuffle lúc bắt đầu rồi lưu nguyên round. Answer khóa sau submit; người dùng chọn Next thủ công. Layout feedback, score, progress, result và restart dùng chung.
-
-`ProgressStore` dùng key `lingoplay:v2:language:level:topic:mode`, kèm summary `:recent`. Lưu config/questions/state, timestamp và `lastResult`; reload kiểm tra data/schema trước khi khôi phục câu hoặc result. Mỗi mode có round riêng. Đọc progress v1 của Word → Meaning và chuyển sang v2 khi chơi tiếp, giữ nguyên key v1. Data đã thay đổi hoặc JSON hỏng bắt đầu lượt mới; storage bị chặn vẫn chơi được. Play again reset answers/index, giữ kết quả hoàn thành gần nhất. Back to topic quay lại bộ chọn mode trên cùng trang.
-
-## Level system
-
-Vocabulary Data Model v2 tách ba khái niệm:
-
-- `level`: curriculum difficulty do Lingoplay xác định (`easy`/`medium`/`hard`). Repository dùng field này để quyết định membership.
-- `learningRank`: teaching order; repository trả từ theo `learningRank ASC`, không mutate dataset. Game vẫn shuffle round như trước.
-- `frequencyRank`: optional reference metadata, không quyết định level hoặc sorting. Không có dữ liệu đáng tin thì để undefined.
-
-Easy khoảng 300 từ curriculum, Medium khoảng 1.200 và Hard khoảng 3.000 theo cumulative là quy mô mục tiêu trong `targetWordCount`, không phải frequency cutoff. Dataset vẫn chỉ có 20 từ demo, level/thứ tự học minh họa và chưa có frequencyRank nghiên cứu. Teaching order demo dùng Easy 1–11, Medium 301–307, Hard 1.201–1.202 để dành vị trí cho curriculum đầy đủ; membership không được suy từ các khoảng số này. Count trên topic lấy từ repository hiện tại.
-
-Thứ tự level tập trung trong `config/course.ts`; `wordBelongsToLevel` nhận curriculum level của từ, không nhận rank. Repository mặc định cumulative để giữ flow/counts hiện có; không có UI chọn progression:
-
-```ts
-await wordRepository.list('en', 'easy', 'animals'); // level easy, topic animals
-await wordRepository.list('en', 'medium'); // easy + medium
-await wordRepository.list('en', 'hard'); // easy + medium + hard
-await wordRepository.list('en', 'medium', 'animals', 'new-only'); // chỉ level medium
-await wordRepository.list('en', 'hard', undefined, 'new-only'); // chỉ level hard
-```
-
-Schema [Word](src/types/content.ts) gồm `id: string`, `language`, `word`, `meaning`, `level`, `learningRank`, `topics: string[]`; optional `frequencyRank`, `partOfSpeech`, `phonetic`, `example`, `imageUrl`, `imageAlt`, `audioUrl`, `visual`. Một từ chỉ xuất hiện một lần trong dataset, có thể thuộc nhiều topic. Thêm metadata không đổi engine/UI.
-
-ID demo gán rõ trong mỗi record là `en-1`…`en-20`, giữ nguyên ID câu hỏi mà các round v1/v2 đang lưu. Đây là ID cố định, không lấy từ array index và không đổi khi sắp xếp/đổi spelling/metadata. Từ mới có thể dùng `en-dog` hoặc ID cố định tương đương; phải kiểm tra uniqueness và giữ ID khi migrate database. Generator dùng `word.id` trực tiếp; storage version/key không đổi.
-
-`isWordEligible(word, activity)` dùng chung trong generator: ba mode text cần word/meaning không rỗng; Image → Word còn cần SVG local, alt mô tả và không bị đánh dấu `visual: false`. `visual` chưa khai báo vẫn tương thích Image → Word cũ. Quy tắc `image-match` cần ảnh hợp lệ và `visual: true`; `listening` cần `audioUrl` không rỗng. Hai quy tắc sau chỉ là helper chuẩn bị, chưa có game/audio/PixiJS. Distractor dùng từ có text hợp lệ trong pool cùng level, không bắt buộc có ảnh.
-
-Session đã lưu có từ/đáp án không còn hợp lệ sẽ bị engine bỏ qua khi đọc, bắt đầu round mới; không xóa localStorage hoặc đổi key. Resume kiểm tra distractor theo toàn bộ pool đáp án đã lọc language/level do Astro chuẩn bị, không theo subset options vừa shuffle trong bank mới. Nhờ đó đổi teaching order/shuffle không làm mất round còn hợp lệ. Topic card ẩn summary có câu hỏi nằm ngoài tập từ hiện tại.
-
-Thêm language trong config và data tương ứng; `getStaticPaths` tạo URL theo data. Thêm level/topic không cần copy page. Skill mới cần có controller/generator phù hợp trước khi bật `available`; hiện chỉ Vocabulary được triển khai.
+Blog/grammar/guides dùng Astro file loader và JSON local. Schema kiểm tra language English, title/description, draft và sections. Thêm entry ID ổn định; draft không tạo route. Cả hai UI locale render cùng nội dung bài học bằng HTML, không React island. Vocabulary pages luôn có HTML bảng từ thật dưới game. Nội dung mới cần build lại.
 
 ## Cloudflare & SEO
 
-Build xuất `dist/`; `wrangler.jsonc` phục vụ thư mục này bằng Cloudflare Workers Static Assets. Không có route SSR nên không cần Cloudflare adapter hay Worker handler. Clean URLs giữ dạng `/en/easy/vocabulary/animals`; URL không tồn tại dùng `404.html` với status 404. Tham khảo [Workers Static Assets](https://developers.cloudflare.com/workers/static-assets/).
+Build xuất `dist/`; `wrangler.jsonc` phục vụ thư mục này bằng Cloudflare Workers Static Assets. Không có route SSR nên không cần Cloudflare adapter hay Worker handler. Clean URLs giữ dạng `/en/games/word-match`; URL không tồn tại dùng `404.html` với status 404. Tham khảo [Workers Static Assets](https://developers.cloudflare.com/workers/static-assets/).
 
 Wrangler là dev dependency dùng cho deploy; không nằm trong bundle game. Kiểm tra trước khi phát hành:
 

@@ -1,12 +1,14 @@
+import { games, getGames, gameSkills } from '../src/config/games.ts';
+import { locales, messages, localePath, learningLanguage } from '../src/i18n.ts';
 ﻿import assert from 'node:assert/strict';
 import { existsSync } from 'node:fs';
 import test from 'node:test';
 import { levels, wordBelongsToLevel } from '../src/config/course.ts';
 import { topics, words as dataset } from '../src/data/content.ts';
-import { filterWords, wordRepository } from '../src/repositories/content.ts';
+import { filterWords, getWordsForProgress, wordRepository } from '../src/repositories/content.ts';
 import { isWordEligible } from '../src/game/eligibility.ts';
 import { advanceGame, createSession, gameModes, generateDistractors, generateQuestions, getScore, getStats, isCorrectAnswer, isValidGameState, isValidQuestion, normalizeAnswer, type ChoiceQuestion, type GameState, type SessionConfig } from '../src/game/vocabulary.ts';
-import { createSavedProgress, progressStore, readStoredSession } from '../src/services/progress.ts';
+import { createSavedProgress, migrateLevelProgress, progressStore, readStoredSession } from '../src/services/progress.ts';
 import type { Word } from '../src/types/content.ts';
 
 const words: Word[] = ['dog', 'cat', 'bird', 'fish', 'cow'].map((word, index) => ({ id: `en-${word}`, language: 'en', word, meaning: `meaning ${index}`, level: 'easy', learningRank: index + 1, topics: ['animals'], imageUrl: `/images/vocabulary/${word}.svg`, imageAlt: `Demo illustration ${index}` }));
@@ -386,4 +388,81 @@ test('blocked storage never prevents playing or scoring', () => {
   assert.equal(progressStore.get(config), null);
   assert.equal(progressStore.save(createSavedProgress(createSession(config, questions)!)), false);
   assert.equal(getStats(finish(createSession(config, questions)!)).correct, 4);
+});
+
+test('game registry orders real games and supports a game in multiple skill filters', () => {
+  const reversed = [...games].reverse();
+  assert.deepEqual(getGames('all', reversed).map(game => game.slug), ['word-match', 'find-the-word', 'picture-pick', 'spell-the-word']);
+  assert.equal(getGames('vocabulary').length, 4);
+  assert.deepEqual(getGames('spelling').map(game => game.slug), ['spell-the-word']);
+  assert.deepEqual(gameSkills, ['vocabulary', 'spelling']);
+  assert.equal(getGames('all', [{ ...games[0], status: 'coming-soon' }]).length, 0);
+  assert.deepEqual(reversed, [...games].reverse());
+});
+
+test('locale changes UI and keeps the same English game identity, topic and target data', () => {
+  assert.equal(messages.en.play, 'Play'); assert.equal(messages.vi.play, 'Chơi');
+  assert.equal(messages.en.hero, 'Learn English through games.'); assert.equal(messages.vi.hero, 'Học tiếng Anh qua game.');
+  assert.equal(learningLanguage, 'en');
+  for (const locale of locales) {
+    assert.deepEqual(getGames().map(game => game.id), gameModes.map(mode => mode.id));
+    assert.ok(getGames().every(game => game.title[locale] && game.description[locale]));
+    assert.equal(localePath(locale, '/en/games/word-match?topic=animals#main'), `/${locale}/games/word-match?topic=animals#main`);
+    assert.ok(getWordsForProgress(dataset, { startRank: 1, count: 10 }).every(word => word.language === learningLanguage));
+  }
+});
+
+test('learning windows advance by teaching rank across gaps without a level selection', () => {
+  const original = [...dataset].reverse();
+  const first = getWordsForProgress(original, { startRank: 1, count: 10 });
+  assert.deepEqual(first.map(word => word.learningRank), [1,2,3,4,5,6,7,8,9,10]);
+  const second = getWordsForProgress(original, { startRank: first.at(-1)!.learningRank + 1, count: 10 });
+  assert.equal(second[0].learningRank, 11);
+  assert.equal(second.at(-1)!.learningRank, 1202);
+  assert.equal(new Set([...first, ...second].map(word => word.id)).size, 20);
+  assert.deepEqual(getWordsForProgress(original, { startRank: 1203, count: 10 }), []);
+  assert.ok(getWordsForProgress(original, { startRank: 1, count: 10, topic: 'colors' }).every(word => word.topics.includes('colors')));
+  assert.deepEqual(original, [...dataset].reverse());
+  for (const startRank of [0, -1, 1.2, NaN]) assert.deepEqual(getWordsForProgress(dataset, { startRank, count: 10 }), []);
+});
+
+test('v3 progress is game/topic based, resumes its range and preserves completed IDs across rounds', () => {
+  const values = storage();
+  const current = { language: learningLanguage, game: 'word-match', topic: 'all', startRank: 1, mode: 'word-to-meaning' as const, questionCount: 5 };
+  const session = finish(createSession(current, questions, random)!);
+  const saved = createSavedProgress(session);
+  assert.equal(saved.version, 3);
+  assert.deepEqual(saved.completedWordIds?.sort(), words.map(word => word.id).sort());
+  assert.equal(progressStore.save(saved), true);
+  assert.ok(values.has('lingoplay:v3:en:word-match:all'));
+  assert.deepEqual(readStoredSession(progressStore.get(current), current, current.mode, questions), session);
+  assert.equal(progressStore.get({ ...current, game: 'find-the-word' }), null);
+  assert.equal(progressStore.get({ ...current, topic: 'animals' }), null);
+  assert.equal(readStoredSession(saved, { ...current, startRank: 2 }, current.mode, questions), null);
+  const next = createSavedProgress({ ...session, state: { index: 0, answers: [] } }, saved);
+  assert.deepEqual(next.completedWordIds, saved.completedWordIds);
+  assert.deepEqual(next.lastResult, saved.lastResult);
+});
+
+test('small v2 to v3 migration preserves the newest valid topic round and old storage', () => {
+  const values = storage();
+  const old = createSession(config, questions, random)!;
+  old.state = advanceGame(old.state, { type: 'answer', answer: old.questions[0].correctAnswer }, old.questions);
+  const saved = createSavedProgress(old);
+  saved.updatedAt = '2026-01-01T00:00:00.000Z';
+  progressStore.save(saved);
+  const newer = { ...old, config: { ...old.config, level: 'medium' as const }, state: advanceGame(old.state, { type: 'next' }, old.questions) };
+  const newerSaved = createSavedProgress(newer);
+  newerSaved.updatedAt = '2026-01-02T00:00:00.000Z';
+  progressStore.save(newerSaved);
+  const key = { language: 'en', game: 'word-match', topic: 'animals', mode: config.mode };
+  const migrated = migrateLevelProgress(key, config.mode, questions, words.map(word => word.meaning), new Map(words.map(word => [word.id, word.learningRank])))!;
+  assert.ok(migrated);
+  assert.equal(migrated.config.level, undefined);
+  assert.equal(migrated.config.startRank, 1);
+  assert.deepEqual(migrated.questions, newer.questions); assert.deepEqual(migrated.state, newer.state);
+  progressStore.save(createSavedProgress(migrated));
+  assert.deepEqual(readStoredSession(progressStore.get(key), migrated.config, config.mode, questions), migrated);
+  assert.deepEqual(JSON.parse(values.get('lingoplay:v2:en:easy:animals:word-to-meaning')!), saved);
+  assert.equal(migrateLevelProgress({ ...key, topic: 'all' }, config.mode, questions, [], new Map()), null);
 });

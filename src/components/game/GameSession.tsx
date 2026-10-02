@@ -1,52 +1,76 @@
 import { useEffect, useRef, useState } from 'react';
 import VocabularyGame from './VocabularyGame';
-import { advanceGame, createSession, gameModes, getStats, isGameMode, type GameAction, type GameMode, type Question, type SessionConfig, type VocabularySession } from '../../game/vocabulary';
-import { createSavedProgress, progressStore, readStoredSession } from '../../services/progress';
+import { advanceGame, createSession, generateQuestions, getStats, type GameAction, type VocabularySession } from '../../game/vocabulary';
+import { isWordEligible } from '../../game/eligibility';
+import { createSavedProgress, migrateLevelProgress, progressStore, readStoredSession } from '../../services/progress';
+import { getWordsForProgress } from '../../repositories/content';
+import { learningLanguage, messages, topicLabel, type Locale } from '../../i18n';
+import type { GameDefinition } from '../../config/games';
+import type { Topic, Word } from '../../types/content';
 
-interface Props { banks: Record<GameMode, Question[]>; answerPools: Record<GameMode, string[]>; topicName: string; levelName: string; progressKey: Pick<SessionConfig, 'language' | 'level' | 'topic'> }
-
-export default function GameSession({ banks, answerPools, topicName, levelName, progressKey }: Props) {
+interface Props { locale: Locale; game: GameDefinition; words: Word[]; topics: Topic[] }
+export default function GameSession({ locale, game, words, topics }: Props) {
+  const t = messages[locale];
+  const [topic, setTopic] = useState('all');
   const [session, setSession] = useState<VocabularySession | null>(null);
   const [ready, setReady] = useState(false);
   const [storageError, setStorageError] = useState(false);
-  const focusPicker = useRef(false);
+  const picker = useRef<HTMLSelectElement>(null);
+  const pool = words.filter(word => isWordEligible(word, game.id));
+  const ranks = new Map(pool.map(word => [word.id, word.learningRank]));
+  const answerPool = pool.map(word => game.id === 'word-to-meaning' ? word.meaning : word.word);
+  const key = (selected: string) => ({ language: learningLanguage, game: game.slug, topic: selected, mode: game.id });
+  const targets = (selected: string, startRank: number) => getWordsForProgress(pool, { startRank, count: 10, topic: selected });
 
+  function restore(selected: string): VocabularySession | null {
+    const saved = progressStore.get(key(selected));
+    if (!saved) {
+      return migrateLevelProgress(key(selected), game.id, generateQuestions(pool.filter(word => selected === 'all' || word.topics.includes(selected)), game.id, pool), answerPool, ranks);
+    }
+    const startRank = typeof saved === 'object' && 'startRank' in saved && typeof saved.startRank === 'number' ? saved.startRank : 1;
+    const bank = generateQuestions(targets(selected, startRank), game.id, pool);
+    return readStoredSession(saved, { ...key(selected), startRank }, game.id, bank, answerPool);
+  }
   useEffect(() => {
-    const recent = progressStore.get(progressKey);
-    const mode = recent && typeof recent === 'object' && 'mode' in recent && isGameMode(recent.mode) ? recent.mode : 'word-to-meaning';
-    setSession(readStoredSession(progressStore.get({ ...progressKey, mode }), progressKey, mode, banks[mode], answerPools[mode]));
+    const requested = new URLSearchParams(window.location.search).get('topic');
+    const selected = topics.some(item => item.id === requested) ? requested! : 'all';
+    setTopic(selected);
+    const saved = restore(selected);
+    if (saved) { setSession(saved); setStorageError(!progressStore.save(createSavedProgress(saved, progressStore.get(key(selected))))); }
     setReady(true);
-  }, [progressKey, banks, answerPools]);
+    // Props are static for the lifetime of an Astro page; a locale switch loads a new page.
+  }, []);
 
-  function save(next: VocabularySession, previous: unknown = progressStore.get({ ...progressKey, mode: next.config.mode })) {
-    setStorageError(!progressStore.save(createSavedProgress(next, previous)));
+  function save(next: VocabularySession) {
+    setStorageError(!progressStore.save(createSavedProgress(next, progressStore.get(key(next.config.topic)))));
     setSession(next);
   }
-
-  function start(mode: GameMode) {
-    const existing = readStoredSession(progressStore.get({ ...progressKey, mode }), progressKey, mode, banks[mode], answerPools[mode]);
-    const next = existing && !getStats(existing).finished ? existing : createSession({ ...progressKey, mode, questionCount: 10 }, banks[mode]);
-    if (next) save(next, existing && getStats(existing).finished ? createSavedProgress(existing) : progressStore.get({ ...progressKey, mode }));
+  function start(newWords = false) {
+    const existing = session ?? restore(topic);
+    if (existing && !newWords) { save(existing); return; }
+    let startRank = existing ? Math.max(...existing.questions.map(question => ranks.get(question.id) ?? 0)) + 1 : 1;
+    if (!targets(topic, startRank).length) startRank = 1;
+    const bank = generateQuestions(targets(topic, startRank), game.id, pool);
+    const next = createSession({ ...key(topic), startRank, questionCount: 10 }, bank);
+    if (next) save(next);
   }
-
   function act(action: GameAction) {
     if (!session) return;
     const state = advanceGame(session.state, action, session.questions);
-    if (state !== session.state) save({ ...session, state }, createSavedProgress(session, progressStore.get({ ...progressKey, mode: session.config.mode })));
+    if (state !== session.state) save({ ...session, state });
   }
-
+  const moreWords = session && getStats(session).finished && targets(topic, Math.max(...session.questions.map(question => ranks.get(question.id) ?? 0)) + 1).length > 0;
   return <div className={`game-session${session ? ' is-playing' : ''}`}>
-    {!ready ? <p className="game-loading" role="status">Getting your game ready…</p> : session ? <VocabularyGame session={session} topicName={topicName} levelName={levelName} onAction={act} onBack={() => { focusPicker.current = true; setSession(null); }} /> : <section className="game-picker" aria-labelledby="game-picker-heading">
-      <h3 id="game-picker-heading" className="visually-hidden" tabIndex={-1} ref={node => { if (node && focusPicker.current) { node.focus(); focusPicker.current = false; } }}>Choose a game</h3>
-      <div className="game-mode-grid">{gameModes.map(mode => {
-        const saved = readStoredSession(progressStore.get({ ...progressKey, mode: mode.id }), progressKey, mode.id, banks[mode.id], answerPools[mode.id]);
-        const continueRound = saved && !getStats(saved).finished;
-        const count = continueRound ? saved.questions.length : Math.min(10, banks[mode.id].length);
-        return <button className={`game-mode-card mode-${mode.id}`} key={mode.id} disabled={!count} onClick={() => start(mode.id)}>
-          <span className="mode-icon" aria-hidden="true">{mode.id === 'image-to-word' ? <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="3" /><circle cx="9" cy="8" r="1" /><path d="m3 17 5-5 4 4 4-6 5 7" /></svg> : mode.icon}</span><strong>{mode.name}</strong><span>{mode.description}</span><small>{count ? `${count} words` : 'More pictures or words needed'}</small><span className="mode-action">{!count ? 'Coming soon' : continueRound ? 'Continue' : saved ? 'Play again' : 'Play'} <span aria-hidden="true">→</span></span>
-        </button>;
-      })}</div>
+    {!ready ? <p className="game-loading" role="status">{t.loading}</p> : session ? <VocabularyGame session={session} topicName={topicLabel(locale, topic)} gameName={game.title[locale]} locale={locale} onAction={act} onNewRound={moreWords ? () => start(true) : undefined} onBack={() => { setSession(null); requestAnimationFrame(() => picker.current?.focus()); }} /> : <section className="topic-picker">
+      <label htmlFor="game-topic">{t.topic}</label>
+      <select id="game-topic" ref={picker} value={topic} onChange={event => {
+        const selected = event.target.value; setTopic(selected);
+        const url = new URL(window.location.href); if (selected === 'all') url.searchParams.delete('topic'); else url.searchParams.set('topic', selected);
+        window.history.replaceState(null, '', url);
+        document.querySelectorAll<HTMLAnchorElement>('[data-locale]').forEach(link => { const target = new URL(link.href); target.search = url.search; link.href = target.href; });
+      }}><option value="all">{t.allTopics}</option>{topics.filter(item => pool.some(word => word.topics.includes(item.id))).map(item => <option key={item.id} value={item.id}>{topicLabel(locale, item.id)}</option>)}</select>
+      <button className="primary-button" onClick={() => start()} disabled={!targets(topic, 1).length}>{t.play} →</button>
     </section>}
-    {storageError && <p className="notice" role="status">Your browser couldn't save progress. You can keep playing, but this round won't be remembered after reload.</p>}
+    {storageError && <p className="notice" role="status">{t.storageError}</p>}
   </div>;
 }

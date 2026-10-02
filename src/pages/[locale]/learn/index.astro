@@ -1,0 +1,14 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import LearningCard from '../../../components/LearningCard.astro';
+import { contentSections } from '../../../config/content';
+import { locales, messages } from '../../../i18n';
+export function getStaticPaths() { return locales.map(locale => ({ params: { locale }, props: { locale } })); }
+const { locale } = Astro.props;
+const t = messages[locale];
+---
+<BaseLayout title={t.library} locale={locale}>
+  <div class="page-container interior-page"><header class="page-heading"><h1>{t.library}</h1><p>{t.libraryIntro}</p></header>
+    <div class="content-grid">{contentSections.map(section => <LearningCard name={t.sections[section.id]} description={t.sectionDescriptions[section.id]} icon={section.icon} color={section.color} href={`/${locale}/learn/${section.id}`} action={t.read} />)}</div>
+  </div>
+</BaseLayout>

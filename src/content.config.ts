@@ -1,12 +1,12 @@
 import { defineCollection } from 'astro:content';
 import { z } from 'astro/zod';
 import { file } from 'astro/loaders';
-import { languages } from './config/course';
+import { learningLanguage } from './i18n';
 
 const articleSchema = z.object({
   title: z.string().min(1),
   description: z.string().min(1),
-  language: z.string().refine(id => languages.some(language => language.id === id), 'Unknown course language'),
+  language: z.literal(learningLanguage),
   draft: z.boolean().default(false),
   sections: z.array(z.object({
     heading: z.string().min(1),

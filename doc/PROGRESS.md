@@ -1,6 +1,6 @@
 # Tiến trình Lingoplay
 
-Cập nhật gần nhất: **2026-10-02** (Asia/Bangkok).
+Cập nhật gần nhất: **2026-10-03** (Asia/Bangkok).
 
 ## Trạng thái hiện tại
 
@@ -11,10 +11,11 @@ Cập nhật gần nhất: **2026-10-02** (Asia/Bangkok).
 | 2 — UX và nội dung local | Đang thực hiện | UI/UX và Vocabulary Data Model v2; chưa nhập Easy 300, cần xác nhận nguồn/curriculum |
 | 3 — Vocabulary Game Engine v1 | Hoàn thành | 4 mode, session/scoring chung, SVG local, progress v2 và migration v1; tests/build/browser pass |
 | 4 — Phát hành static | Hoàn thành | Worker game-play-vn trong account maotuankiet77; GitHub main tự test/build/deploy, SEO/404 và game public pass |
+| 5 — Game-first và UI locale | Hoàn thành | 4 game riêng, filter skill, EN/VI cùng English data, rank progression và progress v3; tests/build/Chrome pass |
 
 Phạm vi/tiêu chí từng phase: [PHASES.md](PHASES.md).
 
-Data model hiện tại: **level = curriculum difficulty; learningRank = teaching order; frequencyRank = optional reference metadata**. Filter dựa vào field level và sort learningRank ASC, không dùng frequency cutoff. Các mục nhật ký trước task Vocabulary Data Model v2 mô tả behavior lịch sử, không phải quy tắc level hiện tại.
+Product hiện tại: **chỉ học English; `/en` và `/vi` là UI locale**. Homepage game-first, không chọn level. Data Model v2 giữ level curriculum metadata, learningRank teaching order và frequencyRank tham khảo tùy chọn; game mới lấy nhóm từ theo learningRank/progress. Helper level chỉ còn phục vụ compatibility/data validation. Nhật ký các task cũ mô tả behavior lịch sử; product flow mới được ghi tại Phase 5 bên dưới.
 
 ## Mốc `v0.1.0-base`
 
@@ -239,6 +240,32 @@ Validation đã xác nhận:
 - Direct URL Easy Colors có empty state, không có game. Console trên tab kiểm tra không error/warning. Task này kiểm tra desktop; responsive/CSS không thay đổi.
 
 Phase 2 vẫn đang thực hiện. Chưa curate/import Easy 300, chưa thêm dependency/PixiJS/audio/backend. Bước tiếp theo: xác nhận curriculum và nghĩa, nhập từng phần với level easy/learningRank/ID cố định; frequencyRank chỉ optional metadata khi có nguồn. Không commit/push/deploy, HEAD vẫn `222eb82`.
+
+## 2026-10-03 — Phase 5: game-first, UI locale và rank progression
+
+Tiếp tục working tree sạch tại `7c0788f`; refactor Astro + React + TypeScript hiện có, không tạo lại project. Inspect trực tiếp homepage Games to Learn English bằng Chrome trước code: game cards và mô tả ngắn xuất hiện sớm, không level/onboarding step. Chỉ lấy pattern flow, không copy artwork/branding/source/layout.
+
+- Homepage hero một câu, bốn card từ registry tập trung, order rõ ràng; All mặc định, Vocabulary và Spelling. Spelling thuộc cả hai skill, filter không dẫn tới trang rỗng. Thumbnails dùng SVG local hiện có. Không thêm Listening/Grammar engine hoặc coming-soon grid.
+- Bốn mode thành Word Match / Find the Word / Picture Pick / Spell the Word; cùng engine và interaction trước đó. Flow Home → Game → Play, topic All mặc định và chọn Animals/Food/Colors tùy ý; bỏ bước level và mode picker trung gian.
+- `/en` và `/vi` chỉ đổi UI. learningLanguage English cố định; localized header/footer, game title/instructions/feedback/progress/result, topic picker và library. Switch giữ game/learn path, topic query/hash; progress chung. Bài viết hiện vẫn English, có lang/en và thông báo rõ.
+- Astro tạo `/[locale]/games/[game]`, `/[locale]/learn/...`; game có bảng 20 vocabulary rows HTML thật, homepage/learn không React island. Chỉ game dùng React island client:load. Giữ title/description/canonical và bổ sung hreflang EN/VI.
+- Old level/skill/topic bookmarks dùng redirect HTML meta refresh của Astro: level → home, vocabulary → Word Match, topic → Word Match?topic=...; không còn internal links level. Không đổi wrangler/deployment.
+- Data Model v2 và 20 records/ID giữ nguyên. getWordsForProgress lọc English/topic, sort learningRank và slice count; mặc định 10 từ, nhóm kế tiếp bắt đầu sau rank cao nhất nhóm đã xong. Chấp nhận rank gaps 11→301 và 307→1201; không adaptive/XP/unlock level UI.
+- localStorage v3 theo English/game/topic, lưu current startRank, session/questions/answers, completedWordIds và lastResult. Chơi lại ôn nhóm hiện tại; Từ mới lấy nhóm tiếp theo. Hết dữ liệu tiếp tục ôn lại. Migration chọn topic round v1/v2 hợp lệ mới nhất và copy, giữ key cũ; không clear storage.
+- Xóa PlantArt, nhánh level của LearningCard, hero/level/mode-picker CSS và language/skill navigation config cũ. Không dependency/runtime/backend mới. README và PHASES cập nhật product direction; package thêm test:site cho HTML build bằng Node runner hiện có.
+
+Validation:
+
+- Unit tests: 30/30 pass (25 engine/data/storage regressions giữ nguyên + registry/filter/multi-skill, locale/target, rank windows, v3 và migration). HTML build tests: 5/5 pass, tổng 35/35. test:site chạy sau build, kiểm tra HTML thực tế EN/VI, order/filter attributes, cùng vocabulary, island/SEO, bài học và toàn bộ legacy redirects.
+- Build cuối với SITE_URL production: 74 trang static; Astro/TypeScript 0 errors/warnings/hints. HTTP preview 73 index HTML routes trả 200; unknown URL trả 404. Project không có lint script; git diff --check pass.
+- Chrome desktop homepage: All mặc định, 4 games ngay phía trên, Spelling chỉ một game và Vocabulary cả bốn; EN/VI đều đúng UI và cùng game/data. Filter keyboard Enter hoạt động.
+- Chrome Word Match: chơi đủ 10 câu, một đáp án sai, result 9/10 (90%). Reload giữ exact prompt/options/feedback; đổi VI→EN vẫn cùng lượt. Từ mới chuyển từ nhóm rank 1–10 tới nhóm rank 11 trở lên, reload giữ nhóm mới.
+- Chrome Find the Word: restore Colors result cũ qua migration; Chơi lại đủ 3/3 (100%); đổi EN→VI giữ topic=colors và result. Bookmark /en/easy/vocabulary/animals chuyển đúng Word Match?topic=animals và giữ lượt Animals đang dở.
+- Chrome Picture Pick: chơi 10/10 (100%), reload giữ result, restart và đáp án keyboard hoạt động. Type the Word: Tab vào input, sửa bằng Backspace, Enter submit, chữ hoa/khoảng trắng chấp nhận, có câu sai; result 9/10 (90%), reload feedback, restart về 1/10.
+- Cả bốn mode có kiểm tra interaction trên desktop và mobile. Homepage kiểm tra viewport CSS thực 360/390/430 (bù zoom Chrome 110% qua viewport override); document scrollWidth bằng clientWidth, không horizontal overflow. Mobile filters và card navigation chạy, viewport override đã reset.
+- Console tab kiểm tra không error/warning. Library VI có semantic headings, nội dung học English bằng Astro HTML. Không commit/push/deploy; HEAD giữ `7c0788f`.
+
+Phase 5 hoàn thành trong scope refactor. Phase 2 về curriculum thật vẫn đang thực hiện: chưa nhập Easy 300. Tiếp theo người dùng review flow/UI; chỉ mở rộng data hoặc game mới khi có yêu cầu riêng.
 
 ## Cách cập nhật
 

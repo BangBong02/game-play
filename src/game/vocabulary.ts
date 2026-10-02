@@ -17,7 +17,7 @@ export interface ChoiceQuestion extends QuestionContent { kind: 'choice'; option
 export interface TypingQuestion extends QuestionContent { kind: 'typing' }
 export type Question = ChoiceQuestion | TypingQuestion;
 export interface GameState { index: number; answers: string[] }
-export interface SessionConfig { language: string; level: LevelId; topic: string; mode: GameMode; questionCount: number }
+export interface SessionConfig { language: string; level?: LevelId; game?: string; startRank?: number; topic: string; mode: GameMode; questionCount: number }
 export interface VocabularySession { config: SessionConfig; questions: Question[]; state: GameState }
 export type GameAction = { type: 'answer'; answer: string } | { type: 'next' } | { type: 'restart' };
 
@@ -32,7 +32,7 @@ export function shuffle<T>(items: readonly T[], random: () => number = Math.rand
   return result;
 }
 
-// Topic words come first; callers supply the shared dataset already filtered to the level.
+// Topic words come first; callers supply the shared English-learning dataset.
 export function generateDistractors(word: Word, answerField: 'word' | 'meaning', words: Word[], pool: Word[] = words, random: () => number = Math.random): string[] {
   const spelling = normalizeAnswer(word.word);
   const meaning = normalizeAnswer(word.meaning);

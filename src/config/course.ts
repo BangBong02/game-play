@@ -1,21 +1,12 @@
-export const languages = [{ id: 'en', name: 'English', flag: '🇬🇧' }];
-
+// Curriculum metadata stays available for data validation and old progress migration.
 export const levels = [
-  { id: 'easy', name: 'Easy', targetWordCount: 300, subtitle: '300 essential words', description: 'Start with everyday English', detail: 'Small steps. A strong foundation.', color: 'green', icon: 'sprout' },
-  { id: 'medium', name: 'Medium', targetWordCount: 1200, subtitle: '1,200 common words', description: 'Build everyday communication', detail: 'More words. More possibilities.', color: 'orange', icon: 'plant' },
-  { id: 'hard', name: 'Hard', targetWordCount: 3000, subtitle: '3,000 words', description: 'Advanced learning and academic vocabulary', detail: 'Grow beyond the everyday.', color: 'purple', icon: 'tree' },
+  { id: 'easy', targetWordCount: 300 },
+  { id: 'medium', targetWordCount: 1200 },
+  { id: 'hard', targetWordCount: 3000 },
 ] as const;
 
 export type LevelId = typeof levels[number]['id'];
 export type Progression = 'cumulative' | 'new-only';
-
-export const skills = [
-  { id: 'vocabulary', name: 'Vocabulary', icon: '🧩', description: 'Make new words stick, one game at a time.', available: true },
-  { id: 'listening', name: 'Listening', icon: '🎧', description: 'Tune your ears to a new language.', available: false },
-  { id: 'grammar', name: 'Grammar', icon: '✏️', description: 'Discover how words work together.', available: false },
-  { id: 'reading', name: 'Reading', icon: '📖', description: 'Find a little adventure in every sentence.', available: false },
-  { id: 'writing', name: 'Writing', icon: '💬', description: 'Turn your thoughts into words.', available: false },
-];
 
 export function wordBelongsToLevel(wordLevel: LevelId, level: LevelId, progression: Progression = 'cumulative'): boolean {
   if (progression === 'new-only') return wordLevel === level;
@@ -23,6 +14,6 @@ export function wordBelongsToLevel(wordLevel: LevelId, level: LevelId, progressi
   return levels.slice(0, index + 1).some(item => item.id === wordLevel);
 }
 
-export function coursePath(language: string, ...segments: string[]): string {
-  return '/' + [language, ...segments].map(encodeURIComponent).join('/');
+export function coursePath(locale: string, ...segments: string[]): string {
+  return '/' + [locale, ...segments].map(encodeURIComponent).join('/');
 }

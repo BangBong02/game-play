@@ -83,6 +83,18 @@ Phạm vi đã được yêu cầu:
 
 Hoàn thành khi bản static đã được deploy đúng account và flow thực tế pass; không chỉ dừng ở build/dry-run. Trạng thái quyền truy cập, validation và URL được ghi trong PROGRESS.md.
 
+## Phase 5 — Game-first, UI locale và progression
+
+Theo product direction mới, English là learning target duy nhất. `/en` và `/vi` là UI locale, không phải lựa chọn ngôn ngữ học.
+
+- Homepage gọn, game grid xuất hiện sớm, All mặc định; registry order/status/localized text/multi-skill và filter chỉ category có game thật.
+- Bốn mode thành bốn game riêng dùng chung engine; topic optional, không chọn Easy/Medium/Hard.
+- Routing `/[locale]/games/[game]`, `/[locale]/learn/...`; locale switch giữ nội dung/query, URL level cũ redirect an toàn.
+- Data Model v2 giữ nguyên; lựa chọn vocabulary theo learningRank/current progress, nhóm tối đa 10 từ và nhóm tiếp theo.
+- localStorage v3 theo game/topic/range/completed IDs, migration nhỏ không xóa v1/v2.
+- Giữ Astro HTML/SEO/Collections, React island; bỏ component và CSS level/hero chết. Không thêm dependency/backend/engine mới.
+- Hoàn thành khi tests/build pass, Chrome desktop và mobile 360/390/430, filters/4 games/keyboard/reload/restart/locale và console đã kiểm tra. Không commit/push/deploy trong task này.
+
 ## Ngoài phạm vi hiện tại
 
 D1, R2, Drizzle, Auth, account, API/backend, sync online và ngôn ngữ mới chỉ được cân nhắc khi có nhu cầu cụ thể và yêu cầu riêng. Không tích hợp chúng chỉ để chuẩn bị cho một phase tương lai.

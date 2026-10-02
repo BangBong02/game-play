@@ -1,3 +1,4 @@
+import { learningLanguage } from '../i18n.ts';
 import { topics, words } from '../data/content.ts';
 import { wordBelongsToLevel, type LevelId, type Progression } from '../config/course.ts';
 import type { Topic, Word } from '../types/content';
@@ -27,3 +28,9 @@ export const topicRepository: TopicRepository = {
     return topics.filter(topic => topic.language === language);
   },
 };
+
+export function getWordsForProgress(dataset: Word[], { startRank, count, topic }: { startRank: number; count: number; topic?: string }): Word[] {
+  if (!Number.isInteger(startRank) || startRank < 1 || !Number.isInteger(count) || count < 1) return [];
+  return dataset.filter(word => word.language === learningLanguage && word.learningRank >= startRank && (!topic || topic === 'all' || word.topics.includes(topic)))
+    .sort((a, b) => a.learningRank - b.learningRank).slice(0, count);
+}
