@@ -57,13 +57,16 @@ Hoàn thành khi unit tests, build, bốn flow browser desktop/mobile, reload v�
 
 ## Phase 4 — Phát hành static website
 
-Phạm vi dự kiến:
+Phạm vi đã được yêu cầu:
 
-- Xác nhận domain, nơi deploy và cấu hình `SITE_URL`.
+- Tạo Worker `game-play` trong account `maotuankiet77@gmail.com`, dùng quyền của `nguyenducbang.uit@gmail.com`.
+- Phục vụ Astro `dist/` bằng Workers Static Assets, URL `workers.dev`; không thêm backend hay SPA fallback.
+- Khóa account đích trong cấu hình sau khi xác minh quyền; đặt `SITE_URL` theo URL phát hành để build canonical.
 - Build static, kiểm tra canonical, routing/404 và game trên môi trường deploy.
 - Ghi phiên bản, validation và URL phát hành trong progress.
+- Theo lựa chọn tiếp theo của người dùng, dùng Worker `game-play-vn` và GitHub `BangBong02/game-play` branch `main` cho Workers Builds tự động; giữ build tests/SEO và kiểm tra bản deploy từ Git.
 
-Hoàn thành khi bản static đã được deploy theo yêu cầu của người dùng và flow thực tế pass. Hiện chưa deploy.
+Hoàn thành khi bản static đã được deploy đúng account và flow thực tế pass; không chỉ dừng ở build/dry-run. Trạng thái quyền truy cập, validation và URL được ghi trong PROGRESS.md.
 
 ## Ngoài phạm vi hiện tại
 

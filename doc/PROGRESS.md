@@ -10,7 +10,7 @@ Cập nhật gần nhất: **2026-10-02** (Asia/Bangkok).
 | 1 — Astro content và SEO | Hoàn thành | HTML vocabulary, Content Collections local, bài viết Astro, game island |
 | 2 — UX và nội dung local | Chưa bắt đầu | Chờ review demo và xác nhận nguồn dataset/rank |
 | 3 — Vocabulary Game Engine v1 | Hoàn thành | 4 mode, session/scoring chung, SVG local, progress v2 và migration v1; tests/build/browser pass |
-| 4 — Phát hành static | Chưa bắt đầu | Chưa xác nhận domain và môi trường deploy |
+| 4 — Phát hành static | Hoàn thành | Worker game-play ở đúng account maotuankiet77; URL public, canonical/404, game desktop/mobile và reload pass |
 
 Phạm vi/tiêu chí từng phase: [PHASES.md](PHASES.md).
 
@@ -75,6 +75,54 @@ Validation đã chạy:
 - Không đổi package/dependency, không thêm backend và không sửa mốc Git `v0.1.0-base`.
 
 Việc tiếp theo: người dùng review UX bốn mode và xác nhận nguồn dataset/rank thật trước khi mở rộng nội dung. Rank của 20 từ vẫn là minh họa; Phase 2 chưa hoàn thành.
+
+### 2026-10-02 — Chuẩn bị deploy Cloudflare Worker
+
+Theo yêu cầu, Worker dự kiến là `game-play` trong account `maotuankiet77@gmail.com`, dùng user `nguyenducbang.uit@gmail.com`. Đã thêm cấu hình Workers Static Assets từ `dist/`, clean URLs và 404-page; giữ Astro static/React game và localStorage. Chưa deploy.
+
+Đã thêm Wrangler 4.146.0 vào devDependencies và ignore `.wrangler/`; không đổi dependency runtime. README ghi cách build/dry-run, account đích và bước cấu hình canonical khi có URL thật. `account_id` chưa được điền vì chưa xác minh được account đích; chưa tạo Worker trên Cloudflare và chưa có URL public.
+
+Validation:
+
+- `npm test`: 14/14 pass.
+- `npm run build`: 25 trang, 0 errors/warnings/hints.
+- `wrangler deploy --dry-run`: pass; không có binding backend.
+- `wrangler dev`: Worker local tại `127.0.0.1:8788` chạy được; 51 trang/assets trả 200, clean URL redirect đúng, URL không tồn tại trả custom 404.
+- Browser trên Worker local: Type the Word hoàn thành 3/4 (75%), feedback đúng/sai, keyboard Enter, result và reload pass; console không error/warning.
+
+Phần còn lại: phiên dashboard hiện chỉ có account `Nguyenducbang.uit@gmail.com's Account` và `Ctcm251010@gmail.com's Account`; user xác nhận chưa cấp quyền ở account đích và sẽ bổ sung. Đã hướng dẫn đăng nhập bằng `maotuankiet77@gmail.com` → Manage Account → Members → Invite `nguyenducbang.uit@gmail.com` với role Workers Platform Admin, rồi chấp nhận lời mời. Tham khảo [Cloudflare member management](https://developers.cloudflare.com/fundamentals/manage-members/manage/).
+
+Wrangler OAuth cũ đã hết hạn; đã mở flow đăng nhập lại nhưng chưa chọn/cấp quyền cho account khác. Flow hết thời gian chờ trong lúc chờ membership; cần đăng nhập lại sau khi account đích xuất hiện. Khi có quyền: xác minh user/account và tên Worker, ghi account_id, build với SITE_URL thật, deploy và kiểm tra URL public. Phase 4 chưa hoàn thành.
+
+### 2026-10-02 — Deploy Cloudflare Worker thành công
+
+User đã chấp nhận lời mời. Đã xác minh dashboard và `wrangler whoami`: user `nguyenducbang.uit@gmail.com`, account đích `Maotuankiet77@gmail.com's Account`, ID `2bbd1ae90146a70f45cf90e0a8b84b6e`. Account chưa có project trước khi tạo Worker. Đã khóa ID này trong `wrangler.jsonc` và khôi phục OAuth chỉ cho account đích với scopes `account:read`, `user:read`, `workers_scripts:write` và background access tự động của Wrangler. Scope `workers:write` ban đầu không đủ cho API deploy; đổi sang Workers Scripts Write thì deploy thành công.
+
+- Worker: `game-play`, Workers Static Assets; 52 file được upload.
+- URL public: https://game-play.maotuankiet77.workers.dev
+- Version ID: `74cea201-b3b9-475b-bc7a-088300f77ec4`.
+- Build với `SITE_URL` theo URL trên; Astro `trailingSlash: 'never'` khớp Workers `drop-trailing-slash`.
+- README có lệnh deploy lại; chưa cấu hình GitHub auto deploy. Không thêm backend/binding và không lưu credential trong Git.
+
+Validation trên bản phát hành:
+
+- `npm test`: 14/14 pass; `npm run build`: 25 trang, 0 errors/warnings/hints; dry-run pass.
+- HTTP: 51 route/assets (24 HTML pages và 27 assets) trả 200 và byte-for-byte khớp build local. Canonical trên 23 trang content dùng URL public và clean path.
+- Chín trang vocabulary giữ bảng từ HTML thật. URL có slash cuối redirect 307 về clean URL; URL không tồn tại trả custom 404, body khớp `404.html`.
+- Browser public: navigation English → Easy → Vocabulary → Colors và hydrate game island hoạt động.
+- Type the Word: 3/4 (75%), đúng/sai, khóa answer, Backspace/Enter, trim/hoa-thường, Next, result, restart pass; feedback/score và result giữ sau reload.
+- Mobile override 390×844: selector, bảng từ và result không cuộn ngang; Image → Word hoàn thành 4/4 (100%) bằng Enter. Ảnh SVG tải thành công; đã reset viewport sau kiểm tra.
+- Console browser không có error/warning trong các flow đã kiểm tra. Các mode còn lại đã được kiểm tra đầy đủ ở Phase 3 và không thay đổi code trong task deploy.
+
+Phase 4 hoàn thành. Thay đổi deploy hiện nằm trong working tree, chưa tạo commit/tag mới; giữ mốc `v0.1.0-base`. Việc tiếp theo vẫn là review UX và xác nhận dataset/rank thật ở Phase 2.
+
+### 2026-10-02 — Kết nối GitHub cho Worker game-play-vn
+
+Người dùng đã kết nối GitHub `BangBong02/game-play` vào account maotuankiet77 và tạo Worker `game-play-vn`. Khi có hai Worker, đã hỏi và người dùng chọn dùng Worker mới. Giữ Worker `game-play` cũ; đổi tên trong `wrangler.jsonc` sang `game-play-vn`, giữ account ID. Đã xác minh phiên dashboard vẫn là `nguyenducbang.uit@gmail.com`.
+
+Workers Builds dùng branch `main`, root `/`, deploy command `npx wrangler deploy`. Đã đặt build command `npm test && SITE_URL=https://game-play-vn.maotuankiet77.workers.dev npm run build` để kiểm tra game và build canonical đúng domain. GitHub hiện mới ở commit base `52f00a5`; cần push commit Engine v1 có sẵn và cấu hình deploy lên main, rồi chờ build tự động và kiểm tra bản public mới. Build dùng API token được cấu hình bởi người dùng, độc lập phiên OAuth CLI.
+
+Trạng thái: đang triển khai; chưa xác nhận build/deploy tự động hoàn thành. Validation local trước khi đổi Worker: 14/14 tests, 25 trang, 0 errors/warnings/hints. Sẽ cập nhật kết quả build từ Git và URL public sau khi xác nhận.
 
 ## Cách cập nhật
 

@@ -95,7 +95,42 @@ Thêm language trong config và data tương ứng; `getStaticPaths` tạo URL t
 
 ## Cloudflare & SEO
 
-Build xuất `dist/`, có thể phục vụ bằng Cloudflare static hosting. Base này không cần Cloudflare adapter vì không có route SSR. Khi deploy, đặt `SITE_URL` là domain thật (ví dụ `https://your-domain.com`) để build canonical.
+Build xuất `dist/`; `wrangler.jsonc` phục vụ thư mục này bằng Cloudflare Workers Static Assets. Không có route SSR nên không cần Cloudflare adapter hay Worker handler. Clean URLs giữ dạng `/en/easy/vocabulary/animals`; URL không tồn tại dùng `404.html` với status 404. Tham khảo [Workers Static Assets](https://developers.cloudflare.com/workers/static-assets/).
+
+Wrangler là dev dependency dùng cho deploy; không nằm trong bundle game. Kiểm tra trước khi phát hành:
+
+```bash
+npm run test
+npm run build
+npx wrangler deploy --dry-run
+npx wrangler dev
+```
+
+Worker phát hành hiện tại là `game-play-vn` trong account `maotuankiet77@gmail.com`, URL [game-play-vn.maotuankiet77.workers.dev](https://game-play-vn.maotuankiet77.workers.dev). User vận hành là `nguyenducbang.uit@gmail.com`; `account_id` trong `wrangler.jsonc` đã khóa account đích. URL/version và validation xem trong [PROGRESS.md](doc/PROGRESS.md).
+
+Workers Builds nối repo `BangBong02/game-play`, production branch `main`, root directory `/`. Cấu hình trên Cloudflare:
+
+```text
+Build command: npm test && SITE_URL=https://game-play-vn.maotuankiet77.workers.dev npm run build
+Deploy command: npx wrangler deploy
+```
+
+Push commit lên `main` sẽ kích hoạt test/build/deploy. Xem kết quả trong Worker → Deployments; chỉ build thành công mới phát hành. GitHub app đã được người dùng kết nối vào account Cloudflare; build dùng API token được cấu hình ở Workers Builds, không dùng phiên Wrangler trên máy. Tham khảo [Workers Builds configuration](https://developers.cloudflare.com/workers/ci-cd/builds/configuration/).
+
+Deploy lại trên PowerShell sau khi sửa code/content:
+
+```powershell
+# Chỉ đăng nhập lại khi phiên Wrangler đã hết hạn; chọn account Maotuankiet77.
+npx.cmd wrangler login --scopes account:read user:read workers_scripts:write
+npx.cmd wrangler whoami
+$env:SITE_URL = 'https://game-play-vn.maotuankiet77.workers.dev'
+npm.cmd test
+npm.cmd run build
+npx.cmd wrangler deploy --dry-run
+npx.cmd wrangler deploy
+```
+
+Đặt `SITE_URL` trước khi build phát hành để HTML có canonical đúng URL public; nếu đổi domain, cập nhật giá trị này trong cả build command Cloudflare và lệnh CLI. Astro dùng `trailingSlash: 'never'` cùng Workers `drop-trailing-slash` để canonical khớp clean URLs. Không lưu OAuth token/API token trong source hay Git. Worker `game-play` cũ vẫn giữ bản deploy CLI trước đó; source hiện trỏ tới `game-play-vn` theo lựa chọn của người dùng.
 
 - [Astro static hosting trên Cloudflare](https://developers.cloudflare.com/workers/framework-guides/web-apps/astro/)
 - [Astro React integration](https://docs.astro.build/en/guides/integrations-guide/react/)
