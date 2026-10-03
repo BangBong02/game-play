@@ -28,6 +28,6 @@ export const wordRepository: WordRepository = {
 
 export const topicRepository: TopicRepository = {
   async list(language) {
-    return topics.filter(topic => topic.language === language);
+    return topics.filter(topic => topic.language === language).sort((a, b) => a.priority - b.priority);
   },
 };

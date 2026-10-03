@@ -311,3 +311,19 @@ Sau mỗi task:
 4. Cập nhật README khi cách chạy hoặc kiến trúc thay đổi; tránh chép lại toàn bộ progress.
 
 Việc tiếp theo hiện tại: người dùng review và tự commit; xác nhận nguồn/licence, curriculum và thứ tự học cho Easy 300 trước khi nhập nội dung Phase 2.
+
+## 2026-10-03 — Phase7: audit và product decisions
+
+Đã đọc attachment/autonomous scope, audit source/config/tests/data/history/docs; baseline unit37/37, HTML5/5, production SITE_URL build74 pages pass. Chrome local homepage và Picture Pick restore giữ round cũ. Tạo dev branch `codex/oxford-learning-mvp`; commit media-ready feature đã hoàn thành: `2e58436`. Chưa push milestone mới.
+
+User xác nhận300/1200 subset trongOxford3000, giao curate priority;3 ngày đúng/lịch1d7d60d/sai5h;PicturePick→ListenImage→ImageMatch; giao engineer chọn accent. Chọn US local demo, không suy đoán website tham khảo dùng accent nào. NativeSAPI cóDavid/Zira US, ffmpeg vàsharp có sẵn; không thêm package/dịch vụ trả phí. Đã mở FastEnglish reference qua Chrome; hướng dẫn listen→click và Slow tự paced phù hợp MVP, không thấy tuyên bố accent chính thức.
+
+Tạo requested decisions/roadmap/plans/project state, cập nhậtAGENTS từ typing scaffold sangLingoplay boundaries/workflow. M1 content đang thực hiện, các feature mới chưa validation/commit.
+
+## 2026-10-03 — Phase7 M1: demo content/Picture Pick
+
+DONE:50 từ đối chiếuOxford3000 có nghĩa/POS/example tự viết;52 canonical IDs bao gồmduck/rabbit supplemental giữtương thích, không tínhmốcOxford. Ranks1–52 doLingoplay curate, không gắnfrequencyRank. Topic priority ưu tiênFood/Family/Home/School.52 audioUS localZira, tổng480373 bytes;30 hình (20 SVG giữURL +10 WebP original primitives/sharp). Scripts regenerate offline vàprovenance trongpublic/media/ATTRIBUTION.md. Khôngdependency/backend/costs.
+
+Fixrestore dùngfull eligible topic bank đểreorder/rankchanges khôngdiscardroundcũ. Unit39/39, HTML5/5, SITE_URL build122 staticpages/0diagnostics pass; diff--check pass. Chrome thấyold answered PicturePick round giữprompt/options/feedback;Home5 từWebP (naturalWidth480), keyboardwrong/right vàNext, reloadđápánsai, result4/5/80%, restart. Desktop/tablet768/mobile390CSS (bùzoom110%) image/answersfit, scrollWidth=clientWidth, mobiletapcorrect;console[]warn/error;viewportreset.
+
+M1code/docs đãreview; chuẩn bịcommit/push devmilestone. TiếpM2Listen→Image;learningmemory/chungprogress chưaimplement.

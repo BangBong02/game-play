@@ -28,7 +28,7 @@ export default function GameSession({ locale, game, words, topics }: Props) {
       return migrateLevelProgress(key(selected), game.id, generateQuestions(targets(selected, 1), game.id, pool), answerPool, ranks);
     }
     const startRank = typeof saved === 'object' && 'startRank' in saved && typeof saved.startRank === 'number' ? saved.startRank : 1;
-    const bank = questionsForRound(selected, startRank);
+    const bank = generateQuestions(targets(selected, 1), game.id, pool);
     return readStoredSession(saved, { ...key(selected), startRank }, game.id, bank, answerPool);
   }
   useEffect(() => {

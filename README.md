@@ -102,7 +102,7 @@ SVG/PNG/JPG/WebP và các định dạng browser hỗ trợ đều có thể đ�
 
 Boundary hiện tại: **Game → normalized pool từ Astro → Word Repository → eligibility/query → local TypeScript**. React dùng query thuần trên pool đã nhận để chọn các lượt kế tiếp, không import module nguồn mock. Repository async `forGame({ game, startRank, count?, topic? })` trả Word[]; site vẫn prerender và content thay đổi cần build lại.
 
-Tương lai thay implementation repository bằng D1 metadata, trả cùng Word[] và bảo toàn ID/rank/topics; URL media đổi sang R2/CDN HTTPS. Giữ rules lọc trước LIMIT/window tương đương query local để không cắt mất item eligible. Astro vẫn gọi repository và truyền normalized props; GameSession/VocabularyGame/renderers giữ contract. D1 không tự biến site static thành realtime: cơ chế refresh/build sẽ được quyết định khi thực sự tích hợp. Chưa có D1/R2/API/binding trong task này.
+Tương lai thay implementation repository bằng Supabase metadata, trả cùng Word[] và bảo toàn ID/rank/topics; URL media đổi sang R2/CDN HTTPS. Giữ rules lọc trước LIMIT/window tương đương query local để không cắt mất item eligible. Astro vẫn gọi repository và truyền normalized props; GameSession/VocabularyGame/renderers giữ contract. Supabase không tự biến site static thành realtime: cơ chế refresh/build sẽ được quyết định khi thực sự tích hợp. Chưa có D1/R2/API/binding trong task này.
 
 Nếu cần US/UK audio hoặc illustration/photo, có thể bổ sung `word_media` ở DB và repository chọn variant thành URL hiện tại; chỉ làm khi một URL không còn đủ. Chưa triển khai variants hay Listening/Image Match/PixiJS. Audio playback sẽ ưu tiên HTML Audio/Web Audio native khi có game thực cần, không thêm audio manager/library/helper chưa dùng.
 
@@ -156,7 +156,7 @@ Phase hiện tại chỉ có TypeScript/JSON local và localStorage. Repository 
 2. Nhập từng phần vào dataset local theo `Word`: ID ổn định, `level: 'easy'`, `learningRank` thể hiện thứ tự dạy, topics hợp lệ; kiểm tra trùng từ và nội dung. `frequencyRank` chỉ thêm khi có nguồn tham khảo, không dùng làm điều kiện Easy. Từ trừu tượng giữ `visual: false`, không cần ảnh; kiểm chứng filter/count/eligibility và flow mẫu sau mỗi phần, không đổi engine/UI.
 3. Bổ sung blog/grammar/guides vào các collection sau khi xác nhận cấu trúc nội dung mẫu.
 
-Phần UI/UX và data model v2 đã cập nhật; curriculum vẫn là 20 từ demo, chưa nhập Easy 300. Trạng thái và validation chi tiết xem trong progress.
+Phần UI/UX và data model v2 đã cập nhật; curriculum có50 từOxford-aligned và2 từsupplemental tương thích cũ; chưa có đủ300 từ. Trạng thái và validation chi tiết xem trong progress.
 
 ## Phase và tiến trình
 
@@ -164,3 +164,11 @@ Phần UI/UX và data model v2 đã cập nhật; curriculum vẫn là 20 từ d
 - [Tiến trình thực tế](doc/PROGRESS.md): trạng thái, validation và nhật ký công việc; cập nhật sau mỗi task.
 
 Mốc đầu tiên: `v0.1.0-base`, lưu base game và Astro content trước khi bổ sung Vocabulary Game Engine v1.
+
+## Local learning MVP
+
+Các mốc300/1200/3000 là cumulative subsets từOxford3000 doLingoplay curate; `learningRank` là thứ tự dạy, không phải frequency rank chính thức. Demo50 từOxford-aligned +2 từbổ sung giữID cũ,30 pictures (20 SVG nhỏ +10 WebP),52 audio US local. Metadata/nghĩa/example do project viết; không copy dictionary assets. Xem [provenance](public/media/ATTRIBUTION.md).
+
+Audio được tạo offline: `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/create-demo-audio.ps1` (WindowsSAPI Zira US, ffmpeg có trongPATH); WebP: `node scripts/create-demo-images.mjs` (sharp có sẵn trongAstro). Không cần regeneration để chạy website.
+
+Quyết định hiện hành: [PRODUCT_DECISIONS](docs/PRODUCT_DECISIONS.md), [ROADMAP](ROADMAP.md), [PROJECT_STATE](docs/PROJECT_STATE.md). Supabase/auth/sync và content đủ3000 làbacklog; repository local vẫn là nguồn runtime/build hiện tại.

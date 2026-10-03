@@ -52,7 +52,7 @@ test('shared data filters language, level and topic before generating questions'
 });
 
 test('new-only returns exact curriculum levels and partitions cumulative results', async () => {
-  const counts = [11, 7, 2];
+  const counts = [43, 7, 2];
   const accumulated: Word[] = [];
   for (const [index, level] of levels.entries()) {
     const added = await wordRepository.list('en', level.id, undefined, 'new-only');
@@ -84,8 +84,8 @@ test('learning order sorts ascending without mutating input or using frequency m
 
 test('explicit demo IDs preserve pre-migration question IDs and stored rounds in every mode', () => {
   const values = storage();
-  assert.equal(dataset.length, 20);
-  assert.equal(new Set(dataset.map(word => word.id)).size, 20);
+  assert.equal(dataset.length, 52);
+  assert.equal(new Set(dataset.map(word => word.id)).size, 52);
   assert.ok(dataset.every(word => typeof word.id === 'string' && word.id && !('rank' in word)));
   const selected = filterWords(dataset, 'en', 'easy', 'animals');
   assert.deepEqual(selected.map(word => word.id), ['en-1', 'en-2', 'en-3', 'en-4', 'en-5', 'en-7']);
@@ -121,16 +121,16 @@ test('resume validates old distractors against the current curriculum pool, not 
 
 test('demo data and topic counts use the selected language and actual level filter', async () => {
   const expected = [
-    { total: 11, animals: 6, food: 6, colors: 0 },
-    { total: 18, animals: 9, food: 7, colors: 3 },
-    { total: 20, animals: 10, food: 7, colors: 4 },
+    { total: 43, animals: 6, food: 11, colors: 0 },
+    { total: 50, animals: 9, food: 12, colors: 3 },
+    { total: 52, animals: 10, food: 12, colors: 4 },
   ];
   for (const [index, level] of levels.entries()) {
     const pool = await wordRepository.list('en', level.id);
     assert.equal(pool.length, expected[index].total);
     assert.ok(pool.every(word => wordBelongsToLevel(word.level, level.id)));
     assert.equal(new Set(pool.map(word => word.id)).size, pool.length);
-    for (const topic of topics) {
+    for (const topic of topics.filter(topic => ['animals', 'food', 'colors'].includes(topic.id))) {
       const filtered = await wordRepository.list('en', level.id, topic.id);
       assert.deepEqual(filtered, pool.filter(word => word.topics.includes(topic.id)));
       assert.equal(filtered.length, expected[index][topic.id as 'animals' | 'food' | 'colors'] ?? 0);
@@ -180,7 +180,8 @@ test('all four modes use filtered targets and distractors across levels, includi
       const targets = filterWords(dataset, 'en', level.id, topic.id);
       for (const mode of gameModes) {
         const bank = generateQuestions(targets, mode.id, pool, random);
-        assert.equal(bank.length, targets.length);
+        const eligible = targets.filter(word => isWordEligible(word, mode.id));
+        assert.equal(bank.length, eligible.length);
         for (const question of bank) {
           assert.ok(targets.some(word => word.id === question.id));
           if (question.kind === 'choice') {
@@ -188,7 +189,7 @@ test('all four modes use filtered targets and distractors across levels, includi
             assert.ok(question.options.every(option => pool.some(word => word[field] === option)));
           }
         }
-        assert.equal(createSession({ ...config, level: level.id, topic: topic.id, mode: mode.id }, bank)?.questions.length ?? 0, Math.min(5, targets.length));
+        assert.equal(createSession({ ...config, level: level.id, topic: topic.id, mode: mode.id }, bank)?.questions.length ?? 0, Math.min(5, eligible.length));
       }
     }
   }
@@ -273,8 +274,8 @@ test('distractor helper excludes equivalent answers, duplicates, blanks and othe
 });
 
 test('image questions keep existing local SVGs and accept content-supplied HTTPS media', () => {
-  assert.equal(dataset.length, 20);
-  for (const word of dataset) {
+  assert.equal(dataset.length, 52);
+  for (const word of dataset.filter(word => isWordEligible(word, 'image-to-word'))) {
     assert.ok(word.imageUrl && existsSync(`public${word.imageUrl}`));
     assert.ok(word.imageAlt?.trim());
   }
@@ -350,8 +351,8 @@ test('repository and both UI locales share English records and identical image/a
       assert.ok(selected.every(word => word.language === 'en' && dataset.includes(word)));
     }
   }
-  assert.deepEqual(await wordRepository.forGame({ game: 'listen-to-word', startRank: 1 }), []);
-  assert.deepEqual(await wordRepository.forGame({ game: 'listen-to-image', startRank: 1 }), []);
+  assert.equal((await wordRepository.forGame({ game: 'listen-to-word', startRank: 1 })).length, 52);
+  assert.equal((await wordRepository.forGame({ game: 'listen-to-image', startRank: 1 })).length, 30);
   const full = { ...words[0], visual: true, audioUrl: '/media/audio/vocabulary/dog.mp3' };
   for (const locale of locales) {
     assert.equal(localePath(locale, '/en/games/picture-pick'), `/${locale}/games/picture-pick`);
@@ -516,7 +517,7 @@ test('learning windows advance by teaching rank across gaps without a level sele
   assert.deepEqual(first.map(word => word.learningRank), [1,2,3,4,5,6,7,8,9,10]);
   const second = getWordsForProgress(original, { startRank: first.at(-1)!.learningRank + 1, count: 10 });
   assert.equal(second[0].learningRank, 11);
-  assert.equal(second.at(-1)!.learningRank, 1202);
+  assert.equal(second.at(-1)!.learningRank, 20);
   assert.equal(new Set([...first, ...second].map(word => word.id)).size, 20);
   assert.deepEqual(getWordsForProgress(original, { startRank: 1203, count: 10 }), []);
   assert.ok(getWordsForProgress(original, { startRank: 1, count: 10, topic: 'colors' }).every(word => word.topics.includes('colors')));
@@ -563,4 +564,25 @@ test('small v2 to v3 migration preserves the newest valid topic round and old st
   assert.deepEqual(readStoredSession(progressStore.get(key), migrated.config, config.mode, questions), migrated);
   assert.deepEqual(JSON.parse(values.get('lingoplay:v2:en:easy:animals:word-to-meaning')!), saved);
   assert.equal(migrateLevelProgress({ ...key, topic: 'all' }, config.mode, questions, [], new Map()), null);
+});
+
+test('curated demo has50 Oxford-aligned words,52 stable IDs and authored metadata/media', () => {
+  assert.equal(dataset.filter(word => word.curriculum === 'oxford-3000').length, 50);
+  assert.deepEqual(dataset.filter(word => word.curriculum === 'supplemental').map(word => word.word).sort(), ['duck', 'rabbit']);
+  assert.equal(new Set(dataset.map(word => word.learningRank)).size, 52);
+  assert.ok(dataset.every(word => Number.isInteger(word.learningRank) && word.learningRank >= 1 && word.partOfSpeech && word.example && word.topics.every(id => topics.some(topic => topic.id === id)) && word.frequencyRank === undefined));
+  assert.equal(dataset.filter(word => isWordEligible(word, 'listen-to-image')).length, 30);
+  for (const word of dataset) assert.ok(word.audioUrl && existsSync(`public${word.audioUrl}`));
+  assert.ok(dataset.filter(word => word.imageUrl?.endsWith('.webp')).length >= 10);
+  for (let id = 1; id <= 20; id++) assert.equal(dataset.find(word => word.id === `en-${id}`)!.imageUrl, `/images/vocabulary/${dataset.find(word => word.id === `en-${id}`)!.word}.svg`);
+});
+
+test('priority changes preserve saved rounds when validated against the full eligible topic pool', () => {
+  const current = { language: 'en', game: 'picture-pick', topic: 'all', startRank: 1, mode: 'image-to-word' as const, questionCount: 10 };
+  const targets = getWordsForGame(dataset, { game: current.mode, startRank: 1, count: 10 });
+  const old = createSession(current, generateQuestions(targets, current.mode, dataset, random), random)!;
+  old.state = advanceGame(old.state, { type: 'answer', answer: old.questions[0].correctAnswer }, old.questions);
+  const revised = dataset.map(word => ({ ...word, learningRank: 100 - word.learningRank }));
+  const bank = generateQuestions(getWordsForGame(revised, { game: current.mode, startRank: 1 }), current.mode, revised, random);
+  assert.deepEqual(readStoredSession(createSavedProgress(old), current, current.mode, bank, revised.map(word => word.word)), old);
 });

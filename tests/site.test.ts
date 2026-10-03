@@ -42,7 +42,7 @@ test('localized game routes share real English vocabulary HTML and one React gam
       const page = pages[index]; const locale = locales[index];
       assert.ok(page.includes(`<h1>${game.title[locale]}</h1>`));
       assert.equal((page.match(/<astro-island /g) ?? []).length, 1);
-      assert.equal((page.match(/<th scope="row" lang="en">/g) ?? []).length, 20);
+      assert.equal((page.match(/<th scope="row" lang="en">/g) ?? []).length, game.id === 'image-to-word' ? 30 : 52);
       assert.ok(page.includes(`/${locale}/games/${game.slug}`));
       assert.match(page, /<meta name="description"/);
       // Local builds can omit SITE_URL; production builds must use the configured site.

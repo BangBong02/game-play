@@ -8,6 +8,7 @@ export interface Word {
   level: LevelId;
   learningRank: number;
   frequencyRank?: number;
+  curriculum?: 'oxford-3000' | 'supplemental';
   phonetic?: string;
   partOfSpeech?: string;
   example?: string;
@@ -19,6 +20,7 @@ export interface Word {
 }
 
 export interface Topic {
+  priority: number;
   id: string;
   language: string;
   name: string;
