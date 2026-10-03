@@ -95,6 +95,17 @@ Theo product direction mới, English là learning target duy nhất. `/en` và 
 - Giữ Astro HTML/SEO/Collections, React island; bỏ component và CSS level/hero chết. Không thêm dependency/backend/engine mới.
 - Hoàn thành khi tests/build pass, Chrome desktop và mobile 360/390/430, filters/4 games/keyboard/reload/restart/locale và console đã kiểm tra. Không commit/push/deploy trong task này.
 
+## Phase 6 — Media-ready content architecture
+
+- Inspect homepage, Monster Vocab, Fast Vocab, Numbers qua Chrome; rút nguyên tắc reuse item qua text/image/audio, không copy assets/layout/source.
+- Giữ một Word v2 với media optional; chuẩn convention asset mới `public/media/images/vocabulary` và `public/media/audio/vocabulary`, giữ URL SVG demo cũ để bảo toàn progress.
+- Eligibility tập trung: text, image, visual matching, audio và audio+image. Listening/Image Match chỉ là query capability, chưa là game.
+- Query game/topic/English target/media trước rank window/count; lấy tối đa 10 eligible words tiếp theo, không bị hụt sau lọc media.
+- Astro đọc repository async và truyền normalized pool; React import query thuần không kéo theo mock data. Chấp nhận local path và HTTPS CDN/R2 qua cùng URL contract.
+- Minimum theo engine đang có: choice đủ 4 answers, typing từ 1 item; thiếu nội dung có unavailable EN/VI. Không fake media.
+- README/progress ghi nguồn/license bắt buộc và boundary local → D1 metadata, local files → R2/CDN; chưa triển khai DB, variants hoặc audio playback.
+- Hoàn thành khi tests/build pass, bốn game trên EN/VI và local image/console đã kiểm tra. Không commit/push/deploy.
+
 ## Ngoài phạm vi hiện tại
 
 D1, R2, Drizzle, Auth, account, API/backend, sync online và ngôn ngữ mới chỉ được cân nhắc khi có nhu cầu cụ thể và yêu cầu riêng. Không tích hợp chúng chỉ để chuẩn bị cho một phase tương lai.

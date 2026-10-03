@@ -1,7 +1,6 @@
 import type { LevelId } from '../config/course';
 import type { Word } from '../types/content';
-import { isLocalImage, isWordEligible } from './eligibility.ts';
-export { isLocalImage } from './eligibility.ts';
+import { isMediaUrl, isWordEligible } from './eligibility.ts';
 
 export const gameModes = [
   { id: 'word-to-meaning', name: 'Word → Meaning', description: 'Word meaning · Choose the Vietnamese meaning.', icon: 'Aa' },
@@ -122,5 +121,5 @@ export function isValidQuestion(value: unknown): value is Question {
   if (question.kind === 'typing') return true;
   return question.kind === 'choice' && Array.isArray(question.options) && question.options.length === 4 && question.options.every(option => typeof option === 'string' && option.trim()) &&
     new Set(question.options.map(normalizeAnswer)).size === 4 && question.options.includes(question.correctAnswer) &&
-    (!question.image || (typeof question.image.url === 'string' && isLocalImage(question.image.url) && typeof question.image.alt === 'string' && !!question.image.alt.trim()));
+    (!question.image || (isMediaUrl(question.image.url) && typeof question.image.alt === 'string' && !!question.image.alt.trim()));
 }

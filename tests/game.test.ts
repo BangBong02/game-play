@@ -6,7 +6,8 @@ import test from 'node:test';
 import { levels, wordBelongsToLevel } from '../src/config/course.ts';
 import { topics, words as dataset } from '../src/data/content.ts';
 import { filterWords, getWordsForProgress, wordRepository } from '../src/repositories/content.ts';
-import { isWordEligible } from '../src/game/eligibility.ts';
+import { isMediaUrl, isWordEligible, type WordActivity } from '../src/game/eligibility.ts';
+import { getWordsForGame } from '../src/repositories/queries.ts';
 import { advanceGame, createSession, gameModes, generateDistractors, generateQuestions, getScore, getStats, isCorrectAnswer, isValidGameState, isValidQuestion, normalizeAnswer, type ChoiceQuestion, type GameState, type SessionConfig } from '../src/game/vocabulary.ts';
 import { createSavedProgress, migrateLevelProgress, progressStore, readStoredSession } from '../src/services/progress.ts';
 import type { Word } from '../src/types/content.ts';
@@ -271,15 +272,112 @@ test('distractor helper excludes equivalent answers, duplicates, blanks and othe
   assert.equal(JSON.stringify({ topic, pool }), snapshot);
 });
 
-test('image questions use only available local SVGs with descriptive alternative text', () => {
+test('image questions keep existing local SVGs and accept content-supplied HTTPS media', () => {
   assert.equal(dataset.length, 20);
   for (const word of dataset) {
     assert.ok(word.imageUrl && existsSync(`public${word.imageUrl}`));
     assert.ok(word.imageAlt?.trim());
   }
-  assert.equal(generateQuestions([{ ...words[0], imageUrl: 'https://example.com/dog.svg' }], 'image-to-word', words).length, 0);
+  const imageUrl = 'https://media.example.com/vocabulary/dog.webp';
+  const bank = generateQuestions([{ ...words[0], imageUrl }], 'image-to-word', words);
+  assert.equal(bank.length, 1);
+  assert.deepEqual((bank[0] as ChoiceQuestion).image, { url: imageUrl, alt: words[0].imageAlt });
+  assert.equal(isValidQuestion(bank[0]), true);
   assert.equal(generateQuestions([{ ...words[0], imageAlt: undefined }], 'image-to-word', words).length, 0);
   assert.equal(generateQuestions([{ ...words[0], imageUrl: undefined }], 'image-to-word', words).length, 0);
+});
+
+test('media URLs support local paths and HTTPS CDN URLs without guessing formats', () => {
+  for (const url of ['/images/vocabulary/dog.svg', '/media/images/vocabulary/cat.webp', '/media/images/vocabulary/apple.jpg', '/media/audio/vocabulary/dog.mp3', 'https://media.example.com/object?id=en-1', 'https://media.example.com/dog.png']) assert.equal(isMediaUrl(url), true, url);
+  for (const url of [undefined, '', ' ', 'dog.svg', '//example.com/dog.svg', '/\\example.com/dog.svg', 'https://', 'https://user:pass@example.com/dog.svg', 'http://example.com/dog.svg', 'javascript:alert(1)', 'data:image/svg+xml,svg']) assert.equal(isMediaUrl(url), false, String(url));
+  assert.equal(isValidQuestion({ ...questions[0], image: { url: 'javascript:alert(1)', alt: 'Dog' } }), false);
+});
+
+test('future audio and image-plus-audio capabilities use one canonical word with optional media', () => {
+  const full: Word = { ...words[0], visual: true, imageUrl: '/media/images/vocabulary/dog.webp', audioUrl: '/media/audio/vocabulary/dog.mp3' };
+  const activities: WordActivity[] = [...gameModes.map(mode => mode.id), 'image-match', 'listen-to-word', 'listening', 'listen-to-image'];
+  for (const activity of activities) {
+    assert.equal(isWordEligible(full, activity), true, activity);
+    assert.equal(isWordEligible({ ...full, meaning: ' ' }, activity), false);
+    assert.equal(isWordEligible({ ...full, word: ' ' }, activity), false);
+  }
+  const audioOnly = { ...full, visual: false, imageUrl: undefined, imageAlt: undefined };
+  assert.equal(isWordEligible(audioOnly, 'listen-to-word'), true);
+  assert.equal(isWordEligible(audioOnly, 'listen-to-image'), false);
+  for (const partial of [{ ...full, audioUrl: undefined }, { ...full, imageUrl: undefined }, { ...full, imageAlt: ' ' }, { ...full, visual: undefined }, { ...full, visual: false }]) assert.equal(isWordEligible(partial, 'listen-to-image'), false);
+  assert.equal(isWordEligible({ ...full, audioUrl: 'javascript:alert(1)' }, 'listen-to-word'), false);
+});
+
+const sparseMedia: Word[] = Array.from({ length: 26 }, (_, index) => ({
+  ...words[0], id: `sparse-${index + 1}`, word: `word ${index + 1}`, meaning: `meaning ${index + 1}`,
+  learningRank: index + 1, topics: index < 12 ? ['animals'] : ['food'], visual: true,
+  imageUrl: index % 2 === 0 ? `/media/images/vocabulary/item-${index + 1}.webp` : undefined,
+  audioUrl: index % 3 === 0 ? `/media/audio/vocabulary/item-${index + 1}.mp3` : undefined,
+}));
+
+test('media eligibility precedes the rank window and fills ten items beyond missing-media gaps', () => {
+  const sample = [...sparseMedia].reverse();
+  const before = JSON.stringify(sample);
+  const first = getWordsForGame(sample, { game: 'image-to-word', startRank: 1, count: 10 });
+  assert.deepEqual(first.map(word => word.learningRank), [1,3,5,7,9,11,13,15,17,19]);
+  const bank = generateQuestions(first, 'image-to-word', getWordsForGame(sample, { game: 'image-to-word', startRank: 1 }), random);
+  assert.equal(createSession({ ...config, mode: 'image-to-word', questionCount: 10 }, bank)!.questions.length, 10);
+  const second = getWordsForGame(sample, { game: 'image-to-word', startRank: 20, count: 10 });
+  assert.deepEqual(second.map(word => word.learningRank), [21,23,25]);
+  assert.deepEqual(getWordsForGame(sample, { game: 'listen-to-word', startRank: 2, count: 10 }).map(word => word.learningRank), [4,7,10,13,16,19,22,25]);
+  assert.equal(JSON.stringify(sample), before);
+});
+
+test('topic, English target and media capabilities combine before taking a ranked group', () => {
+  const sample = [...sparseMedia, { ...sparseMedia[0], id: 'fr-extra', language: 'fr' }];
+  assert.deepEqual(getWordsForGame(sample, { game: 'image-to-word', topic: 'food', startRank: 14, count: 3 }).map(word => word.learningRank), [15,17,19]);
+  assert.deepEqual(getWordsForGame(sample, { game: 'listen-to-image', topic: 'animals', startRank: 1, count: 10 }).map(word => word.learningRank), [1,7]);
+  assert.deepEqual(getWordsForGame(sample, { game: 'word-to-meaning', topic: 'animals', startRank: 1, count: 4 }).map(word => word.learningRank), [1,2,3,4]);
+  assert.equal(getWordsForGame(sample, { game: 'image-to-word', startRank: 1 }).length, 13);
+  assert.deepEqual(getWordsForGame(sample, { game: 'image-to-word', topic: 'unknown', startRank: 1, count: 10 }), []);
+  for (const count of [0, -1, 1.5, NaN]) assert.deepEqual(getWordsForGame(sample, { game: 'image-to-word', startRank: 1, count }), []);
+  assert.deepEqual(getWordsForGame(sample, { game: 'image-to-word', startRank: 26, count: 10 }), []);
+});
+
+test('repository and both UI locales share English records and identical image/audio URLs', async () => {
+  for (const mode of gameModes) {
+    const query = { game: mode.id, startRank: 1, count: 10 };
+    const selected = await wordRepository.forGame(query);
+    assert.deepEqual(selected, getWordsForGame(dataset, query));
+    for (const locale of locales) {
+      assert.ok(messages[locale].notEnoughContent);
+      assert.deepEqual(await wordRepository.forGame(query), selected);
+      assert.ok(selected.every(word => word.language === 'en' && dataset.includes(word)));
+    }
+  }
+  assert.deepEqual(await wordRepository.forGame({ game: 'listen-to-word', startRank: 1 }), []);
+  assert.deepEqual(await wordRepository.forGame({ game: 'listen-to-image', startRank: 1 }), []);
+  const full = { ...words[0], visual: true, audioUrl: '/media/audio/vocabulary/dog.mp3' };
+  for (const locale of locales) {
+    assert.equal(localePath(locale, '/en/games/picture-pick'), `/${locale}/games/picture-pick`);
+    assert.equal(getWordsForGame([full], { game: 'listen-to-image', startRank: 1 })[0], full);
+  }
+});
+
+test('small banks cap at available words, require choice distractors and allow one typing item', () => {
+  for (const mode of gameModes) {
+    const selected = getWordsForGame(words.slice(0, 3), { game: mode.id, startRank: 1, count: 10 });
+    const bank = generateQuestions(selected, mode.id, selected, random);
+    assert.equal(createSession({ ...config, mode: mode.id, questionCount: 10 }, bank)?.questions.length ?? 0, mode.id === 'type-the-word' ? 3 : 0);
+    const withFallback = generateQuestions(selected, mode.id, words, random);
+    assert.equal(createSession({ ...config, mode: mode.id, questionCount: 10 }, withFallback)!.questions.length, 3);
+    assert.equal(createSession({ ...config, mode: mode.id }, generateQuestions([], mode.id, words)), null);
+  }
+  assert.equal(createSession({ ...config, mode: 'type-the-word' }, generateQuestions(words.slice(0, 1), 'type-the-word'))!.questions.length, 1);
+});
+
+test('normalized CDN image questions resume through existing progress without changing the renderer contract', () => {
+  const pool = words.map(word => ({ ...word, imageUrl: `https://media.example.com/objects/${word.id}.webp` }));
+  const bank = generateQuestions(getWordsForGame(pool, { game: 'image-to-word', startRank: 1, count: 10 }), 'image-to-word', pool, random);
+  const session = createSession({ ...config, mode: 'image-to-word' }, bank, random)!;
+  session.state = advanceGame(session.state, { type: 'answer', answer: session.questions[0].correctAnswer }, session.questions);
+  const saved = createSavedProgress(session);
+  assert.deepEqual(readStoredSession(saved, session.config, session.config.mode, bank, pool.map(word => word.word)), session);
 });
 
 test('sessions honor question count, shuffle without mutation, cap small banks and reject invalid counts', () => {

@@ -3,13 +3,13 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
 import GameSession from '../../../components/game/GameSession';
 import { getGames } from '../../../config/games';
 import { locales, messages, learningLanguage } from '../../../i18n';
-import { words, topics } from '../../../data/content';
-import { getWordsForProgress } from '../../../repositories/content';
+import { wordRepository, topicRepository } from '../../../repositories/content';
 export function getStaticPaths() { return locales.flatMap(locale => getGames().map(game => ({ params: { locale, game: game.slug }, props: { locale, game } }))); }
 const { locale, game } = Astro.props;
 const t = messages[locale];
-const dataset = getWordsForProgress(words, { startRank: 1, count: words.length });
-const availableTopics = topics.filter(topic => topic.language === learningLanguage && dataset.some(word => word.topics.includes(topic.id)));
+const dataset = await wordRepository.forGame({ game: game.id, startRank: 1 });
+const topics = await topicRepository.list(learningLanguage);
+const availableTopics = topics.filter(topic => dataset.some(word => word.topics.includes(topic.id)));
 ---
 <BaseLayout title={game.title[locale]} description={game.description[locale]} locale={locale}>
   <div class="page-container game-page">

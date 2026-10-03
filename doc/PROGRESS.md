@@ -12,10 +12,11 @@ Cập nhật gần nhất: **2026-10-03** (Asia/Bangkok).
 | 3 — Vocabulary Game Engine v1 | Hoàn thành | 4 mode, session/scoring chung, SVG local, progress v2 và migration v1; tests/build/browser pass |
 | 4 — Phát hành static | Hoàn thành | Worker game-play-vn trong account maotuankiet77; GitHub main tự test/build/deploy, SEO/404 và game public pass |
 | 5 — Game-first và UI locale | Hoàn thành | 4 game riêng, filter skill, EN/VI cùng English data, rank progression và progress v3; tests/build/Chrome pass |
+| 6 — Media-ready content | Hoàn thành | Optional media, query capability trước window, repository boundary; 37 unit + 5 HTML tests/build/Chrome pass |
 
 Phạm vi/tiêu chí từng phase: [PHASES.md](PHASES.md).
 
-Product hiện tại: **chỉ học English; `/en` và `/vi` là UI locale**. Homepage game-first, không chọn level. Data Model v2 giữ level curriculum metadata, learningRank teaching order và frequencyRank tham khảo tùy chọn; game mới lấy nhóm từ theo learningRank/progress. Helper level chỉ còn phục vụ compatibility/data validation. Nhật ký các task cũ mô tả behavior lịch sử; product flow mới được ghi tại Phase 5 bên dưới.
+Product hiện tại: **chỉ học English; `/en` và `/vi` là UI locale**. Homepage game-first, không chọn level. Data Model v2 giữ level curriculum metadata, learningRank teaching order và frequencyRank tham khảo tùy chọn; game lấy nhóm từ eligible theo learningRank/progress. Helper level chỉ còn phục vụ compatibility/data validation. Nhật ký các task cũ mô tả behavior lịch sử; product flow mới tại Phase 5 và media boundary tại Phase 6 bên dưới.
 
 ## Mốc `v0.1.0-base`
 
@@ -266,6 +267,39 @@ Validation:
 - Console tab kiểm tra không error/warning. Library VI có semantic headings, nội dung học English bằng Astro HTML. Không commit/push/deploy; HEAD giữ `7c0788f`.
 
 Phase 5 hoàn thành trong scope refactor. Phase 2 về curriculum thật vẫn đang thực hiện: chưa nhập Easy 300. Tiếp theo người dùng review flow/UI; chỉ mở rộng data hoặc game mới khi có yêu cầu riêng.
+
+## 2026-10-03 — Phase 6: media-ready content architecture
+
+Baseline `5457f7b`, working tree sạch trước task. Không đổi Astro/React/TypeScript, bốn engine mode, Word schema v2 hoặc storage v3. Không thêm dependency/backend/DB/PixiJS/Listening engine; không nhập vocabulary/media hàng loạt.
+
+Reference findings (Chrome trước khi sửa code):
+
+- [Homepage](https://www.gamestolearnenglish.com/) dùng các game với cùng nhóm vocabulary theo topic.
+- [Monster Vocab](https://www.gamestolearnenglish.com/monster-vocab/): đã vào Food preview, bắt đầu vòng và chọn hình wine theo prompt chữ; UI có audio control. Phần hướng dẫn mô tả nhóm ngẫu nhiên 10 item, các giai đoạn nhận diện, drag/drop và recall dùng lại vocabulary.
+- [Fast Vocab](https://www.gamestolearnenglish.com/fast-vocab/): đã chọn Animals, kéo Snake vào nhãn Snake và quan sát hình khóa vào đích. Hướng dẫn mô tả ghép hình/chữ kèm pronunciation rồi rapid image-to-word sau 10 item; không khẳng định đã hoàn thành toàn bộ vòng 40 lượt.
+- [Numbers](https://www.gamestolearnenglish.com/numbers/): vào Easy, chọn block 13 theo prompt Thirteen và thấy nhân vật nhảy tới block. Hướng dẫn mô tả nghe số → nhận diện digits, các set nội dung nhỏ. Không sao chép artwork/audio/layout/source.
+- Nguyên tắc áp dụng: một canonical item được tái dùng qua interaction theo text/image/audio capability; topic set và nhóm nhỏ không cần dataset riêng từng game.
+
+Đã làm:
+
+- `isWordEligible` tập trung rules text, image (visual khác false), image-match (visual true), listen-to-word/audio và listen-to-image/đủ hai media + visual true. `listening` cũ giữ alias; các hoạt động tương lai chỉ là eligibility/query, không vào registry game playable.
+- `isMediaUrl` chấp nhận path root hoặc HTTPS URL, không khóa SVG/local provider; loại scheme không phù hợp/URL lỗi. Generator và question validation dùng cùng URL contract, truyền URL/alt từ Word. Giữ các optional media fields, không tạo media tables/variants/manager/helper phát audio.
+- `wordRepository.forGame` async dùng local nguồn hiện có. Astro gọi Word/Topic repositories rồi truyền normalized Word[]; React dùng `repositories/queries.ts` thuần, không import module chứa dataset mock. `getWordsForProgress` re-export để giữ compatibility.
+- `getWordsForGame` lọc eligibility trước rank window/count, kết hợp fixed English target và topic, sort learningRank ASC. Không count thì lấy pool đủ; session count 10, cap theo available. Thứ tự câu vẫn shuffle, New words dùng max rank nhóm + 1. localStorage và ID/media URLs demo không đổi.
+- Play xét bank tạo được, không chỉ target.length. Choice cần 4 answers khác nhau, fallback English pool; typing tối thiểu 1 từ. Thiếu nội dung hiển thị unavailable EN/VI và disable Play, không fake media/placeholders.
+- README chuẩn convention asset mới `public/media/images/vocabulary/*`, `public/media/audio/vocabulary/*`; giữ 20 SVG demo tại đường dẫn cũ để không làm mất resume. Chưa có audio assets; URL audio trong tests là fixture, không được thêm vào dataset thật.
+- Mỗi image/audio nhập mới phải có nguồn/license rõ ràng hoặc do project sở hữu/tạo ra. Không tải asset bên ngoài trong task này. Tương lai repository trả cùng Word[] từ D1 metadata, URLs từ R2/CDN; giữ eligibility trước LIMIT/window. US/UK audio hoặc illustration/photo chỉ cân nhắc variants/word_media khi thực sự cần; site static vẫn cần build/refresh policy khi thay nguồn.
+
+Validation:
+
+- `npm test`: **37/37 pass** (30 tests baseline, thêm 7 tests media/query/session/resume). Update expectation SVG-local-only cũ sang HTTPS URL hợp lệ theo yêu cầu mới; kiểm tra file SVG demo tồn tại và thiếu URL/alt vẫn giữ. Coverage image+audio/visual/base text, URL formats/schemes, sparse media lấy đủ 10 eligible items, rank gaps/topic/English, canonical locale reuse, small bank và CDN question progress.
+- `SITE_URL=https://game-play-vn.maotuankiet77.workers.dev npm run build`: **pass**, 74 static pages, Astro/TypeScript **0 errors / 0 warnings / 0 hints**. `npm run test:site`: **5/5 pass**, real HTML vocabulary/Collections, localized routes, một game island và redirects giữ đúng.
+- Chrome bản build local `127.0.0.1:4323`: cả homepage EN/VI và cả bốn game đã chơi/submit/Next trên EN/VI. Word Match/typing kiểm tra đúng + sai, Enter, hoa/thường/space, result/restart; Word Match reload giữ answered state. Switch locale giữ prompt/options/result/media. Find the Word giữ round legacy 3 từ, New words chuyển tới yellow một từ với 4 options fallback rồi hoàn thành.
+- Picture Pick render SVG thật (`/images/vocabulary/blue.svg`, naturalWidth 240), cùng URL/alt trên EN/VI; hoàn thành Colors 4/4. Responsive thử bằng viewport override 390×844, CSS innerWidth đo thực tế 355px do zoom Chrome hiện tại: image/answers/submit và unavailable VI không overflow; đã reset override, không đổi zoom người dùng.
+- Fixture tạm trong `dist/` kiểm tra normalized empty pool EN/VI và choice pool 3 từ: Play disabled + thông báo; typing 1 từ: Play enabled. Chỉ sửa props bản HTML fixture, không sửa dataset thật và không submit/save fixture. Fixture đã được dọn, không thêm route/source test tạm.
+- Console tab local **không error/warning** trong các flow và fixture đã kiểm tra. Kiểm tra import graph không có nguồn mock/repository source trong React/game/services/query module. Không có lint script trong project.
+
+Phase 6 hoàn thành. Chưa commit/push/deploy. Bước tiếp theo đề xuất: curate một nhóm English nhỏ có nghĩa/POS/rank/topics và nguồn/license media rõ ràng để review trước khi mở rộng content; chưa tự nhập hoặc triển khai bước đó.
 
 ## Cách cập nhật
 
