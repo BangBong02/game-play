@@ -4,7 +4,7 @@ export const learningLanguage = 'en';
 export const localePath = (locale: Locale, path: string) => path.replace(/^\/(en|vi)(?=\/|$)/, `/${locale}`);
 export const messages = {
   en: {
-    games: 'Games', learn: 'Learn', all: 'All', vocabulary: 'Vocabulary', spelling: 'Spelling',
+    listening: 'Listening', imageBased: 'Pictures', listen: 'Listen / replay', replay: 'Replay', audioVoice: 'English US · Demo voice', audioError: 'Audio could not play. Try Listen again or choose another topic.', listenInstruction: 'Listen. Which picture matches?', games: 'Games', learn: 'Learn', all: 'All', vocabulary: 'Vocabulary', spelling: 'Spelling',
     hero: 'Learn English through games.', intro: 'Pick a game and play.', play: 'Play', continue: 'Continue',
     skip: 'Skip to content', navigation: 'Main navigation', uiLanguage: 'Interface language', footer: 'A little play. A lot of English.',
     topic: 'Choose a topic', allTopics: 'All topics', topics: { animals: 'Animals', food: 'Food', colors: 'Colors', home: 'Home', school: 'School', family: 'Family', body: 'Body', clothing: 'Clothing', transport: 'Travel', time: 'Time', numbers: 'Numbers', weather: 'Weather', 'daily-life': 'Daily life', 'days-months': 'Days & Months' },
@@ -24,7 +24,7 @@ export const messages = {
     articleLanguage: 'Lessons are written in English.', filterCount: 'games',
   },
   vi: {
-    games: 'Game', learn: 'Học', all: 'Tất cả', vocabulary: 'Từ vựng', spelling: 'Chính tả',
+    listening: 'Nghe', imageBased: 'Hình ảnh', listen: 'Nghe / nghe lại', replay: 'Nghe lại', audioVoice: 'Giọng US · Audio demo', audioError: 'Không phát được audio. Bấm nghe lại hoặc chọn chủ đề khác.', listenInstruction: 'Nghe rồi chọn hình phù hợp.', games: 'Game', learn: 'Học', all: 'Tất cả', vocabulary: 'Từ vựng', spelling: 'Chính tả',
     hero: 'Học tiếng Anh qua game.', intro: 'Chọn một game và chơi thôi.', play: 'Chơi', continue: 'Tiếp tục',
     skip: 'Đến nội dung', navigation: 'Điều hướng chính', uiLanguage: 'Ngôn ngữ giao diện', footer: 'Chơi một chút. Học thêm tiếng Anh.',
     topic: 'Chọn chủ đề', allTopics: 'Tất cả chủ đề', topics: { animals: 'Động vật', food: 'Đồ ăn', colors: 'Màu sắc', home: 'Nhà cửa', school: 'Trường học', family: 'Gia đình', body: 'Cơ thể', clothing: 'Quần áo', transport: 'Đi lại', time: 'Thời gian', numbers: 'Số đếm', weather: 'Thời tiết', 'daily-life': 'Đời sống', 'days-months': 'Ngày & tháng' },

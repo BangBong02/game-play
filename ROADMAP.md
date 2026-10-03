@@ -7,8 +7,8 @@ Updated: 2026-10-03. Current delivery scope is the local Oxford-aligned learning
 | M0.1 | Shared media eligibility and repository queries | Existing engine | P0 | Four games keep working; media filtered before rank/count; tests/build/browser pass | DONE |
 | M1.1 | Product decisions, resumable plans and project conventions | Audit, owner answers | P0 | Required docs reflect real code and confirmed defaults | DONE |
 | M1.2 | 50 curated words, topic priorities, US audio and Picture Pick polish | M0.1, M1.1 | P0 | Stable IDs; valid Oxford membership; own meanings/examples; ≥20 visual/audio words; responsive picture flow and assets validated | DONE |
-| M2.1 | Listen → Image | M1.2 | P0 | Real opt-in/replay audio; image choices; keyboard/touch; failure feedback; resume/results; tests/build/browser pass | IN PROGRESS |
-| M3.1 | Image Match | M1.2, M2.1 | P0 | Select word then matching image; compact feedback; keyboard/touch; completed pairs/progress/results; resume; tests/build/browser pass | TODO |
+| M2.1 | Listen → Image | M1.2 | P0 | Real opt-in/replay audio; image choices; keyboard/touch; failure feedback; resume/results; tests/build/browser pass | DONE |
+| M3.1 | Image Match | M1.2, M2.1 | P0 | Select word then matching image; compact feedback; keyboard/touch; completed pairs/progress/results; resume; tests/build/browser pass | IN PROGRESS |
 | M4.1 | Global learning memory and due-first rounds | Stable IDs, all games | P0 | Three different-day correct answers; 1d/7d/60d and wrong5h; duplicate/reload protection; old rounds preserved; meaningful tests | TODO |
 | M4.2 | Vocabulary targets, topic progress and review screen | M4.1 | P0 | Available/demo counts honest; unseen/learning/correct/due/mastered distinct; topic completion based on mastery; EN/VI | TODO |
 | M5.1 | Release validation and handoff | All MVP features | P0 | Six games tested desktop/tablet/mobile, keyboard, wrong/right, reload/restart/results; console clean; unit/HTML/build pass; review diff; docs and dev pushes current | TODO |

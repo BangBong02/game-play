@@ -327,3 +327,11 @@ DONE:50 từ đối chiếuOxford3000 có nghĩa/POS/example tự viết;52 cano
 Fixrestore dùngfull eligible topic bank đểreorder/rankchanges khôngdiscardroundcũ. Unit39/39, HTML5/5, SITE_URL build122 staticpages/0diagnostics pass; diff--check pass. Chrome thấyold answered PicturePick round giữprompt/options/feedback;Home5 từWebP (naturalWidth480), keyboardwrong/right vàNext, reloadđápánsai, result4/5/80%, restart. Desktop/tablet768/mobile390CSS (bùzoom110%) image/answersfit, scrollWidth=clientWidth, mobiletapcorrect;console[]warn/error;viewportreset.
 
 M1code/docs đãreview; chuẩn bịcommit/push devmilestone. TiếpM2Listen→Image;learningmemory/chungprogress chưaimplement.
+
+## 2026-10-03 — Phase7 M2: Listen→Image
+
+M1commits5491253/docs và430d644/content đãpush origin/codex/oxford-learning-mvp. M2DONE:gameListen&Pick eligibilityaudio+visual,4 imagechoices (khônglộtargettexttrướcanswer), normalizedmedia, explicitListen/replay, noautoplay, stop khiđổicâu/unmount;promise failures vàlocalizedretry. Restore xácminhsourceURL/alt/audio và giữoptionsorder. Homepage cóListening/Pictures filters thực.4 modecũgiữnguyên.
+
+Unit40/40, builtHTML5/5, SITE_URL build124pages/0diagnostics pass. ChromeDesktop:audioinitialpaused/currentTime0, userEnterplay pausedfalse/duration1.52s, end/replay, wrongblue→correctgreen feedback;reload exactimages/answers, nextaudio pausedtime0. Tablet768/mobile390CSS fit/nooverflow;completeColors3/4/75%, restartnoautoplay. Normalflowsconsole[]warn/error. Controlledmissingbuscliptest:localizedfailure(noUnhandledPromise), restorefile→replayclearsfeedback/audioerror=null, pausedfalse/duration1.50;expectednetwork404duringfixtureonly. Assetsrestored, nofixture retained.
+
+TiếpM3ImageMatch;memory/progress chưaimplement. M2chuẩnbịfeaturecommit/devpush saufinalreview.

@@ -1,13 +1,15 @@
 import { messages, type Locale, type Messages } from '../../i18n';
 import { useEffect, useRef, useState } from 'react';
+import AudioPrompt from './AudioPrompt';
 import { getStats, isCorrectAnswer, type ChoiceQuestion, type GameAction, type TypingQuestion, type VocabularySession } from '../../game/vocabulary';
 
 function MultipleChoiceRenderer({ question, answer, onAnswer, t }: { question: ChoiceQuestion; answer?: string; onAnswer: (answer: string) => void; t: Messages }) {
   return <div className="answer-grid">{question.options.map((option, index) => {
     const correct = answer !== undefined && option === question.correctAnswer;
     const wrong = answer === option && !correct;
-    return <button key={option} disabled={answer !== undefined} className={`answer-button${correct ? ' correct' : ''}${wrong ? ' incorrect' : ''}`} onClick={() => onAnswer(option)}>
-      <span className="answer-letter" aria-hidden="true">{String.fromCharCode(65 + index)}</span><span className="answer-content"><span lang={question.answerLanguage}>{option}</span>{(correct || wrong) && <small>{correct ? t.correctAnswer : t.wrongAnswer}</small>}</span><span className="answer-symbol" aria-hidden="true">{correct ? '✓' : wrong ? '×' : ''}</span>
+    const image = question.optionImages?.find(image => image.answer === option);
+    return <button key={option} disabled={answer !== undefined} className={`answer-button${image ? ' image-answer' : ''}${correct ? ' correct' : ''}${wrong ? ' incorrect' : ''}`} onClick={() => onAnswer(option)}>
+      <span className="answer-letter" aria-hidden="true">{String.fromCharCode(65 + index)}</span>{image && <img src={image.url} alt={image.alt} width="160" height="120" />}<span className="answer-content">{(!image || answer !== undefined) && <span lang={question.answerLanguage}>{option}</span>}{(correct || wrong) && <small>{correct ? t.correctAnswer : t.wrongAnswer}</small>}</span><span className="answer-symbol" aria-hidden="true">{correct ? '✓' : wrong ? '×' : ''}</span>
     </button>;
   })}</div>;
 }
@@ -54,9 +56,10 @@ export default function VocabularyGame({ session, topicName, gameName, locale, o
         <span aria-hidden="true">{index < stats.completed ? '✓' : index + 1}</span><span className="visually-hidden">{t.word} {index + 1}: {index < stats.completed ? t.completed : index === state.index ? t.current : t.upcoming}</span>
       </li>)}</ol>
     </div>
-    <div className={`question-card${question.kind === 'choice' && question.image ? ' image-question' : ''}`}>
-      <span className="visually-hidden">{config.mode === 'type-the-word' ? t.typeInstruction : config.mode === 'word-to-meaning' ? t.meaningInstruction : t.wordInstruction}</span>
-      <h3 id="question-heading" ref={heading} tabIndex={-1} lang={config.mode === 'image-to-word' ? locale : question.promptLanguage}>{config.mode === 'image-to-word' ? t.pictureInstruction : question.prompt}</h3>
+    <div className={`question-card${question.kind === 'choice' && (question.image || question.audio) ? ' image-question' : ''}`}>
+      <span className="visually-hidden">{config.mode === 'listen-to-image' ? t.listenInstruction : config.mode === 'type-the-word' ? t.typeInstruction : config.mode === 'word-to-meaning' ? t.meaningInstruction : t.wordInstruction}</span>
+      <h3 id="question-heading" ref={heading} tabIndex={-1} lang={config.mode === 'image-to-word' || config.mode === 'listen-to-image' ? locale : question.promptLanguage}>{config.mode === 'listen-to-image' ? t.listenInstruction : config.mode === 'image-to-word' ? t.pictureInstruction : question.prompt}</h3>
+      {question.kind === 'choice' && question.audio && <AudioPrompt key={`${question.id}-${state.index}-${answer === undefined ? 'open' : 'answered'}`} src={question.audio} t={t} />}
       {question.kind === 'choice' && question.image && <img className="question-image" src={question.image.url} alt={question.image.alt} width="240" height="180" />}
     </div>
     {question.kind === 'choice' ? <MultipleChoiceRenderer t={t} question={question} answer={answer} onAnswer={answer => onAction({ type: 'answer', answer })} /> : <TypingRenderer t={t} key={`${question.id}-${state.index}`} question={question} answer={answer} onAnswer={answer => onAction({ type: 'answer', answer })} />}

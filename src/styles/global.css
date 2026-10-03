@@ -1,4 +1,4 @@
-﻿@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap');
 
 :root {
   font-family: 'DM Sans', sans-serif;
@@ -335,3 +335,13 @@ progress::-moz-progress-bar { background: var(--green); border-radius: 20px; }
   .topic-picker { padding: 16px; }
   .topic-picker label { width: 100%; }
 }
+
+.audio-prompt { margin-top: 16px; }
+.audio-button { min-height: 52px; font-size: 18px; }
+.audio-prompt p { color: var(--muted); font-size: 12px; margin: 10px 0 0; }
+.answer-button.image-answer { display: flex; position: relative; flex-direction: column; gap: 6px; padding: 12px; }
+.image-answer > img { width: min(100%, 160px); height: auto; border-radius: 12px; }
+.image-answer .answer-letter { position: absolute; top: 8px; left: 8px; }
+.image-answer .answer-content { flex: initial; text-align: center; }
+.image-answer .answer-symbol { position: absolute; top: 8px; right: 8px; }
+@media(max-width: 700px) { .image-answer > img { width: min(100%, 130px); } .audio-button { font-size: 16px; } }

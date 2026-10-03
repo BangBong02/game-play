@@ -12,7 +12,7 @@ const games = getGames();
     <header class="game-first-hero"><h1>{t.hero}</h1><p>{t.intro}</p></header>
     <section aria-label={t.games}>
       <div class="game-filters" role="group" aria-label={t.games}>
-        {['all', ...gameSkills].map(skill => <button type="button" data-filter={skill} aria-pressed={skill === 'all'} disabled>{t[skill as 'all' | 'vocabulary' | 'spelling']}</button>)}
+        {['all', ...gameSkills].map(skill => <button type="button" data-filter={skill} aria-pressed={skill === 'all'} disabled>{t[skill as 'all' | 'vocabulary' | 'spelling' | 'imageBased' | 'listening']}</button>)}
       </div>
       <p class="filter-count" role="status" data-filter-count data-unit={t.filterCount}>{games.length} {t.filterCount}</p>
       <div class="home-game-grid">{games.map(game => <a class:list={['home-game-card', game.color]} href={`/${locale}/games/${game.slug}`} data-skills={game.skills.join(' ')}>

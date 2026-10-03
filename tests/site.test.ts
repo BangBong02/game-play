@@ -9,13 +9,13 @@ import { topics } from '../src/data/content.ts';
 // Run after npm run build. Assert the HTML actually shipped by Astro, without a browser/test dependency.
 const html = (path: string) => readFileSync(new URL(`../dist/${path}/index.html`, import.meta.url), 'utf8');
 
-test('both homepages render localized UI, four ordered games and no level step or React island', () => {
+test('both homepages render localized UI, ordered playable games and no level step or React island', () => {
   for (const locale of locales) {
     const page = html(locale);
     assert.ok(page.includes(`<html lang="${locale}">`));
     assert.ok(page.includes(`<h1>${messages[locale].hero}</h1>`));
     assert.ok(page.includes(`>${messages[locale].learn}</a>`));
-    assert.equal((page.match(/class="home-game-card /g) ?? []).length, 4);
+    assert.equal((page.match(/class="home-game-card /g) ?? []).length, 5);
     const links = [...page.matchAll(/href="([^\"]+)" data-skills=/g)].map(match => match[1]);
     assert.deepEqual(links, getGames().map(game => `/${locale}/games/${game.slug}`));
     assert.doesNotMatch(page, /astro-island|href="\/(en|vi)\/(easy|medium|hard)/);
@@ -30,7 +30,9 @@ test('rendered filters default to All and expose only skills with real games', (
     assert.match(page, /data-filter="vocabulary" aria-pressed="false"/);
     assert.match(page, /data-filter="spelling" aria-pressed="false"/);
     assert.match(page, /data-skills="vocabulary spelling"/);
-    assert.doesNotMatch(page, /data-filter="(?:listening|grammar)"/);
+    assert.match(page, /data-filter="listening"/);
+    assert.match(page, /data-filter="imageBased"/);
+    assert.doesNotMatch(page, /data-filter="grammar"/);
   }
 });
 
@@ -40,9 +42,9 @@ test('localized game routes share real English vocabulary HTML and one React gam
     assert.equal(pages[0].match(/<tbody>.*?<\/tbody>/s)?.[0], pages[1].match(/<tbody>.*?<\/tbody>/s)?.[0]);
     for (let index = 0; index < pages.length; index++) {
       const page = pages[index]; const locale = locales[index];
-      assert.ok(page.includes(`<h1>${game.title[locale]}</h1>`));
+      assert.ok(page.includes(`<h1>${game.title[locale].replaceAll('&', '&amp;')}</h1>`));
       assert.equal((page.match(/<astro-island /g) ?? []).length, 1);
-      assert.equal((page.match(/<th scope="row" lang="en">/g) ?? []).length, game.id === 'image-to-word' ? 30 : 52);
+      assert.equal((page.match(/<th scope="row" lang="en">/g) ?? []).length, ['image-to-word', 'listen-to-image'].includes(game.id) ? 30 : 52);
       assert.ok(page.includes(`/${locale}/games/${game.slug}`));
       assert.match(page, /<meta name="description"/);
       // Local builds can omit SITE_URL; production builds must use the configured site.

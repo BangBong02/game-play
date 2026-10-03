@@ -21,6 +21,6 @@ Both activities playable and discoverable under real skill filters; no autoplay;
 ## Risks
 Do not expose the spoken target as visible text before listening answer. Describe image choices accessibly. Do not convert the whole website to a React application.
 ## Progress
-- Planned; M1 dependency pending.
+- M2 DONE:normalized audio/image-choice questions, native opt-in/replay with caught failures/reload retry, skills Listening/Pictures. Unit40/40, HTML5/5, build124pages, Chrome desktop/tablet768/mobile390CSS, wrong/right/reload/result3of4/restart and actual playback. Controlled missing asset recovered after restore. M3 matching IN PROGRESS.
 ## Decisions
 Owner approved Picture Pick → Listen/Image → Image Match. Native click/tap/keyboard matching, no PixiJS.

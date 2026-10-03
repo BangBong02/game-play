@@ -1,4 +1,4 @@
-import { getStats, isValidGameState, isValidQuestion, type GameMode, type Question, type VocabularySession } from '../game/vocabulary.ts';
+import { getStats, isValidGameState, isValidQuestion, type ChoiceQuestion, type GameMode, type Question, type VocabularySession } from '../game/vocabulary.ts';
 
 export interface ProgressKey {
   language: string;
@@ -66,7 +66,7 @@ export function createSavedProgress(session: VocabularySession, previous?: unkno
 }
 
 // Keep the exact question order/options on reload. Old v1 rounds are validated and read without deleting them.
-export function readStoredSession(value: unknown, key: ProgressKey, mode: GameMode, bank: Question[], answerPool?: string[]): VocabularySession | null {
+export function readStoredSession(value: unknown, key: ProgressKey, mode: GameMode, bank: Question[], answerPool?: string[], imagePool?: ChoiceQuestion['optionImages']): VocabularySession | null {
   if (!value || typeof value !== 'object') return null;
   const saved = value as Record<string, unknown>;
   if (saved.language !== key.language || saved.level !== key.level || saved.topic !== key.topic || saved.game !== key.game) return null;
@@ -89,11 +89,12 @@ export function readStoredSession(value: unknown, key: ProgressKey, mode: GameMo
     (key.game && (session.config.startRank !== key.startRank || !Number.isInteger(key.startRank) || key.startRank! < 1)) ||
     !Array.isArray(session.questions) || !session.questions.length || session.questions.length !== session.config.questionCount || new Set(session.questions.map(question => question?.id)).size !== session.questions.length) return null;
   const allowedAnswers = new Set(answerPool ?? bank.flatMap(question => question.kind === 'choice' ? question.options : []));
+  const allowedImages = new Map((imagePool ?? bank.flatMap(question => question.kind === 'choice' ? question.optionImages ?? [] : [])).map(image => [image.answer, image]));
   const valid = session.questions.every(question => {
     if (!isValidQuestion(question)) return false;
     const current = bank.find(item => item.id === question.id);
     return current && current.kind === question.kind && current.prompt === question.prompt && current.correctAnswer === question.correctAnswer && current.promptLanguage === question.promptLanguage && current.answerLanguage === question.answerLanguage &&
-      (question.kind === 'typing' || (current.kind === 'choice' && JSON.stringify(current.image) === JSON.stringify(question.image) && question.options.every(option => allowedAnswers.has(option))));
+      (question.kind === 'typing' || (current.kind === 'choice' && JSON.stringify(current.image) === JSON.stringify(question.image) && current.audio === question.audio && !!current.optionImages === !!question.optionImages && question.options.every(option => allowedAnswers.has(option)) && (!question.optionImages || question.optionImages.every(image => JSON.stringify(allowedImages.get(image.answer)) === JSON.stringify(image)))));
   });
   return valid && isValidGameState(session.state, session.questions) ? session : null;
 }

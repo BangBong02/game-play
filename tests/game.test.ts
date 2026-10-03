@@ -12,7 +12,7 @@ import { advanceGame, createSession, gameModes, generateDistractors, generateQue
 import { createSavedProgress, migrateLevelProgress, progressStore, readStoredSession } from '../src/services/progress.ts';
 import type { Word } from '../src/types/content.ts';
 
-const words: Word[] = ['dog', 'cat', 'bird', 'fish', 'cow'].map((word, index) => ({ id: `en-${word}`, language: 'en', word, meaning: `meaning ${index}`, level: 'easy', learningRank: index + 1, topics: ['animals'], imageUrl: `/images/vocabulary/${word}.svg`, imageAlt: `Demo illustration ${index}` }));
+const words: Word[] = ['dog', 'cat', 'bird', 'fish', 'cow'].map((word, index) => ({ id: `en-${word}`, language: 'en', word, meaning: `meaning ${index}`, level: 'easy', learningRank: index + 1, topics: ['animals'], visual: true, audioUrl: `/media/audio/vocabulary/${word}-us.mp3`, imageUrl: `/images/vocabulary/${word}.svg`, imageAlt: `Demo illustration ${index}` }));
 const random = () => 0.25;
 const questions = generateQuestions(words, 'word-to-meaning', words, random) as ChoiceQuestion[];
 const config: SessionConfig = { language: 'en', level: 'easy', topic: 'animals', mode: 'word-to-meaning', questionCount: 5 };
@@ -161,7 +161,7 @@ test('eligibility separates text, image, visual matching and future listening re
   assert.equal(isWordEligible(words[0], 'image-to-word'), true);
   assert.equal(isWordEligible({ ...words[0], visual: false }, 'image-to-word'), false);
   assert.equal(isWordEligible({ ...words[0], imageAlt: ' ' }, 'image-to-word'), false);
-  assert.equal(isWordEligible(words[0], 'image-match'), false);
+  assert.equal(isWordEligible({ ...words[0], visual: undefined }, 'image-match'), false);
   assert.equal(isWordEligible({ ...words[0], visual: true }, 'image-match'), true);
   assert.equal(isWordEligible({ ...textOnly, visual: true }, 'image-match'), false);
   assert.equal(isWordEligible({ ...words[0], visual: false }, 'image-match'), false);
@@ -491,10 +491,10 @@ test('blocked storage never prevents playing or scoring', () => {
 
 test('game registry orders real games and supports a game in multiple skill filters', () => {
   const reversed = [...games].reverse();
-  assert.deepEqual(getGames('all', reversed).map(game => game.slug), ['word-match', 'find-the-word', 'picture-pick', 'spell-the-word']);
-  assert.equal(getGames('vocabulary').length, 4);
+  assert.deepEqual(getGames('all', reversed).map(game => game.slug), ['word-match', 'find-the-word', 'picture-pick', 'spell-the-word', 'listen-and-pick']);
+  assert.equal(getGames('vocabulary').length, 5);
   assert.deepEqual(getGames('spelling').map(game => game.slug), ['spell-the-word']);
-  assert.deepEqual(gameSkills, ['vocabulary', 'spelling']);
+  assert.deepEqual(gameSkills, ['vocabulary', 'imageBased', 'spelling', 'listening']);
   assert.equal(getGames('all', [{ ...games[0], status: 'coming-soon' }]).length, 0);
   assert.deepEqual(reversed, [...games].reverse());
 });
@@ -585,4 +585,26 @@ test('priority changes preserve saved rounds when validated against the full eli
   const revised = dataset.map(word => ({ ...word, learningRank: 100 - word.learningRank }));
   const bank = generateQuestions(getWordsForGame(revised, { game: current.mode, startRank: 1 }), current.mode, revised, random);
   assert.deepEqual(readStoredSession(createSavedProgress(old), current, current.mode, bank, revised.map(word => word.word)), old);
+});
+
+test('listening questions use real image/audio choices, hide target text and reject incomplete media', () => {
+  const bank = generateQuestions(dataset, 'listen-to-image', dataset, random) as ChoiceQuestion[];
+  assert.equal(bank.length, 30);
+  for (const question of bank) {
+    assert.equal(question.prompt, 'Listen and pick a picture.');
+    assert.ok(question.audio && isMediaUrl(question.audio));
+    assert.equal(question.optionImages?.length, 4);
+    assert.ok(question.optionImages?.every(image => question.options.includes(image.answer) && isMediaUrl(image.url)));
+    assert.equal(isValidQuestion(question), true);
+  }
+  assert.deepEqual(generateQuestions(dataset.map(word => ({ ...word, audioUrl: undefined })), 'listen-to-image'), []);
+  assert.equal(isValidQuestion({ ...bank[0], audio: 'javascript:bad' }), false);
+  assert.equal(isValidQuestion({ ...bank[0], optionImages: bank[0].optionImages!.slice(0,3) }), false);
+  const session = createSession({ language: 'en', game: 'listen-and-pick', startRank: 1, topic: 'all', mode: 'listen-to-image', questionCount: 10 }, bank, random)!;
+  const imagePool = dataset.filter(word => word.imageUrl && word.imageAlt).map(word => ({ answer: word.word, url: word.imageUrl!, alt: word.imageAlt! }));
+  const saved = createSavedProgress(session);
+  assert.deepEqual(readStoredSession(saved, session.config, session.config.mode, bank, dataset.map(word => word.word), imagePool), session);
+  const bad = structuredClone(saved);
+  (bad.session.questions[0] as ChoiceQuestion).optionImages![0].url = '/media/changed.webp';
+  assert.equal(readStoredSession(bad, session.config, session.config.mode, bank, dataset.map(word => word.word), imagePool), null);
 });

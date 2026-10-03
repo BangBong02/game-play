@@ -29,7 +29,7 @@ export default function GameSession({ locale, game, words, topics }: Props) {
     }
     const startRank = typeof saved === 'object' && 'startRank' in saved && typeof saved.startRank === 'number' ? saved.startRank : 1;
     const bank = generateQuestions(targets(selected, 1), game.id, pool);
-    return readStoredSession(saved, { ...key(selected), startRank }, game.id, bank, answerPool);
+    return readStoredSession(saved, { ...key(selected), startRank }, game.id, bank, answerPool, pool.filter(word => word.imageUrl && word.imageAlt).map(word => ({ answer: word.word, url: word.imageUrl!, alt: word.imageAlt! })));
   }
   useEffect(() => {
     const requested = new URLSearchParams(window.location.search).get('topic');

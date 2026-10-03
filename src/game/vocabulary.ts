@@ -7,12 +7,13 @@ export const gameModes = [
   { id: 'meaning-to-word', name: 'Meaning → Word', description: 'Word recall · Find the English word.', icon: '↔' },
   { id: 'image-to-word', name: 'Image → Word', description: 'Picture vocabulary · Match the image to a word.', icon: '▧' },
   { id: 'type-the-word', name: 'Type the Word', description: 'Spelling · Type the English word.', icon: '⌨' },
+  { id: 'listen-to-image', name: 'Listen → Image', description: 'Listen and identify the picture.', icon: '♫' },
 ] as const;
 export type GameMode = typeof gameModes[number]['id'];
 export const isGameMode = (value: unknown): value is GameMode => gameModes.some(mode => mode.id === value);
 
 interface QuestionContent { id: string; prompt: string; promptLanguage: string; answerLanguage: string; correctAnswer: string }
-export interface ChoiceQuestion extends QuestionContent { kind: 'choice'; options: string[]; image?: { url: string; alt: string } }
+export interface ChoiceQuestion extends QuestionContent { kind: 'choice'; options: string[]; image?: { url: string; alt: string }; audio?: string; optionImages?: { answer: string; url: string; alt: string }[] }
 export interface TypingQuestion extends QuestionContent { kind: 'typing' }
 export type Question = ChoiceQuestion | TypingQuestion;
 export interface GameState { index: number; answers: string[] }
@@ -59,13 +60,16 @@ export function generateQuestions(words: Word[], mode: GameMode, pool: Word[] = 
     if (ids.has(id) || spellings.has(spelling) || !isWordEligible(word, mode)) continue;
     const reverse = mode !== 'word-to-meaning';
     const correctAnswer = reverse ? word.word : word.meaning;
-    const content = { id, prompt: mode === 'image-to-word' ? 'Which word matches this picture?' : reverse ? word.meaning : word.word, promptLanguage: reverse ? 'vi' : word.language, answerLanguage: reverse ? word.language : 'vi', correctAnswer };
+    const listening = mode === 'listen-to-image';
+    const content = { id, prompt: listening ? 'Listen and pick a picture.' : mode === 'image-to-word' ? 'Which word matches this picture?' : reverse ? word.meaning : word.word, promptLanguage: listening ? word.language : reverse ? 'vi' : word.language, answerLanguage: reverse ? word.language : 'vi', correctAnswer };
     if (mode === 'type-the-word') {
       questions.push({ ...content, kind: 'typing' });
     } else {
-      const wrong = generateDistractors(word, reverse ? 'word' : 'meaning', words, pool, random);
+      const optionPool = listening ? pool.filter(item => isWordEligible(item, mode)) : pool;
+      const wrong = generateDistractors(word, reverse ? 'word' : 'meaning', listening ? words.filter(item => isWordEligible(item, mode)) : words, optionPool, random);
       if (wrong.length < 3) continue;
-      questions.push({ ...content, kind: 'choice', options: shuffle([correctAnswer, ...wrong], random), ...(mode === 'image-to-word' ? { promptLanguage: word.language, image: { url: word.imageUrl!, alt: word.imageAlt! } } : {}) });
+      const options = shuffle([correctAnswer, ...wrong], random);
+      questions.push({ ...content, kind: 'choice', options, ...(mode === 'image-to-word' ? { promptLanguage: word.language, image: { url: word.imageUrl!, alt: word.imageAlt! } } : {}), ...(listening ? { audio: word.audioUrl!, optionImages: options.map(answer => { const item = answer === word.word ? word : optionPool.find(item => item.word === answer)!; return { answer, url: item.imageUrl!, alt: item.imageAlt! }; }) } : {}) });
     }
     ids.add(id);
     spellings.add(spelling);
@@ -121,5 +125,7 @@ export function isValidQuestion(value: unknown): value is Question {
   if (question.kind === 'typing') return true;
   return question.kind === 'choice' && Array.isArray(question.options) && question.options.length === 4 && question.options.every(option => typeof option === 'string' && option.trim()) &&
     new Set(question.options.map(normalizeAnswer)).size === 4 && question.options.includes(question.correctAnswer) &&
-    (!question.image || (isMediaUrl(question.image.url) && typeof question.image.alt === 'string' && !!question.image.alt.trim()));
+    (!question.image || (isMediaUrl(question.image.url) && typeof question.image.alt === 'string' && !!question.image.alt.trim())) &&
+    (question.audio === undefined || isMediaUrl(question.audio)) &&
+    (question.optionImages === undefined || (Array.isArray(question.optionImages) && question.optionImages.length === 4 && new Set(question.optionImages.map(image => image.answer)).size === 4 && question.optionImages.every(image => question.options.includes(image.answer) && isMediaUrl(image.url) && typeof image.alt === 'string' && !!image.alt.trim())));
 }
