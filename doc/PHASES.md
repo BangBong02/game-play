@@ -109,3 +109,9 @@ Theo product direction mới, English là learning target duy nhất. `/en` và 
 ## Ngoài phạm vi hiện tại
 
 D1, R2, Drizzle, Auth, account, API/backend, sync online và ngôn ngữ mới chỉ được cân nhắc khi có nhu cầu cụ thể và yêu cầu riêng. Không tích hợp chúng chỉ để chuẩn bị cho một phase tương lai.
+
+## Phase 7 — Autonomous Oxford-aligned local learning MVP
+
+Phạm vi mới đã được người dùng yêu cầu:50 từ demo có metadata, priority/topic, media US local; hoàn thiện Picture Pick, thêm Listen/Image rồi Image Match; learning memory3 ngày đúng với lịch1d/7d/60d, sai5h; topic mastery và cumulative300/1200/3000 (subset tự curate). Giữ4 game/SEO/Collections/localStorage. Feature commits và milestone pushes trên dev branch được cho phép. Supabase/auth/full3000 là backlog, không triển khai trong MVP.
+
+Roadmap chi tiết/acceptance ở `ROADMAP.md`, decisions ở `docs/PRODUCT_DECISIONS.md`, state ở `docs/PROJECT_STATE.md`; nhật ký thực tế vẫn ở `doc/PROGRESS.md`. Hoàn thành khi nội dung/media/game/memory/progress được validation tự động và Chrome desktop/tablet/mobile/keyboard/reload/restart/console, docs và dev Git milestones cập nhật.

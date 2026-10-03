@@ -1,8 +1,8 @@
-# AGENTS.md — Typing Speed VN
+# AGENTS.md — Lingoplay
 
-Tài liệu này quy định cách coding agent làm việc trong project **Typing Speed VN**.
+Tài liệu này quy định cách coding agent làm việc trong project **Lingoplay**.
 
-Mục tiêu là tạo một ứng dụng luyện gõ bàn phím đơn giản, nhanh, dễ sử dụng và dễ bảo trì.
+Mục tiêu là website học tiếng Anh qua mini game: Astro cho routing/content/SEO, React cho interaction, data độc lập; đơn giản, nhanh và dễ bảo trì.
 
 ## 1. Nguyên tắc quan trọng nhất
 
@@ -15,7 +15,7 @@ Khi có nhiều giải pháp, ưu tiên theo thứ tự:
 1. Không cần code mới.
 2. Tái sử dụng code hiện có.
 3. HTML/CSS/Browser API native.
-4. API có sẵn của React/Vite.
+4. API có sẵn của React/Astro.
 5. Dependency đã có.
 6. Viết một lượng code mới nhỏ và rõ ràng.
 7. Chỉ thêm dependency hoặc abstraction mới khi thực sự cần.
@@ -61,7 +61,7 @@ Nếu cần lưu progress phía client, ưu tiên `localStorage`.
 
 Stack mặc định:
 
-- Vite
+- Astro (routing, HTML SEO, Content Collections)
 - React
 - TypeScript
 - CSS
@@ -74,7 +74,7 @@ Không cài UI framework hoặc component library chỉ để giải quyết nh�
 Trước khi thêm dependency mới phải kiểm tra:
 
 1. Browser có hỗ trợ native không?
-2. React/Vite có giải quyết được không?
+2. React/Astro có giải quyết được không?
 3. Dependency hiện tại có giải quyết được không?
 4. Viết một đoạn code nhỏ có đơn giản hơn thêm dependency không?
 
@@ -91,7 +91,7 @@ Khi thiết kế hoặc cải thiện UI:
 - không cài Impeccable thành runtime dependency nếu nó chỉ là skill/tool của coding agent;
 - không sao chép nguyên giao diện của website hoặc phần mềm khác.
 
-TypingMaster và các sản phẩm tương tự chỉ được dùng làm **tham khảo về ý tưởng UX và learning flow**, không clone giao diện, assets, branding hoặc source code.
+Games to Learn English và các sản phẩm tương tự chỉ được dùng làm **tham khảo về ý tưởng UX và learning flow**, không clone giao diện, assets, branding hoặc source code.
 
 UI phải:
 
@@ -102,62 +102,21 @@ UI phải:
 - không có animation thừa;
 - không hy sinh usability để đổi lấy hiệu ứng đẹp.
 
-Ứng dụng typing chủ yếu dành cho bàn phím vật lý, vì vậy desktop/laptop là trải nghiệm ưu tiên.
+Mỗi game cần kiểm tra desktop, tablet và mobile; keyboard và touch đều là interaction cốt lõi.
 
-## 5. Core UX của Typing Speed VN
+## 5. Core UX của Lingoplay
 
-Hai nguyên tắc quan trọng của trải nghiệm luyện gõ:
+Homepage game-first, filter kỹ năng native; topic optional. Không dùng Easy/Medium/Hard làm progression chính. Giữ EN/VI là UI locale, learning target English. Game có session ngắn, hình/audio/đáp án ưu tiên, feedback gọn, keyboard/touch và reload/restart/results.
 
-### Keyboard + Hands
+Không thêm PixiJS hay dependency game/audio trong MVP. Impeccable chỉ dùng nếu có sẵn; không cài chỉ vì thiếu tool.
 
-Trong màn luyện tập cần có:
+## 6. Content và learning memory
 
-- bàn phím ảo;
-- hai bàn tay;
-- highlight phím cần bấm;
-- highlight ngón tay tương ứng.
+Một canonical Word dùng chung các game, ID ổn định. Media URLs/alt đến từ data; renderer không đoán filename/provider. Eligibility lọc trước rank/count. `learningRank` là editorial priority, `frequencyRank` chỉ khi có nguồn xác thực. Topics có priority.
 
-Người học phải có thể nhìn và hiểu:
+Oxford 3000 là nguồn đối chiếu membership; các subset 300 ⊂ 1.200 ⊂ 3.000 do Lingoplay curate. Không copy definitions/examples/artwork/audio của Oxford. Demo 50 từ, ít nhất20 media phù hợp; ghi provenance. Cumulative targets không đồng nghĩa đã có đủ content.
 
-**ký tự cần gõ → phím nào → dùng ngón nào.**
-
-Không cần animation phức tạp nếu highlight đơn giản đã truyền đạt tốt.
-
-### Lesson → Drill
-
-Một lesson có thể gồm các dạng bài như:
-
-- New Keys
-- Key Drill
-- Word Drill
-- Sentence Drill
-- Paragraph Drill
-- Speed Test
-
-Không bắt buộc lesson nào cũng phải có tất cả các drill.
-
-Số lượng drill phụ thuộc vào mục tiêu của lesson.
-
-Learning flow nên tiến dần:
-
-**key → combination → word → sentence → paragraph → test**
-
-## 6. Course content
-
-Phiên bản đầu tiên chỉ tập trung vào tiếng Anh.
-
-Không tự tạo hàng trăm lesson ngay từ đầu.
-
-Khi phát triển feature mới:
-
-1. làm một lesson mẫu;
-2. kiểm tra UX;
-3. xác nhận data structure;
-4. sau đó mới mở rộng content.
-
-Content của bài luyện phải phù hợp với các phím người học đã học.
-
-Không đưa quá nhiều phím chưa học vào drill nếu lesson đang nhằm luyện một nhóm phím cụ thể.
+Memory localStorage theo canonical ID; mastery cần đúng ở3 ngày khác nhau, lịch1d/7d/60d, sai5h. Không biến completed/seen IDs cũ thành mastery. Không xóa progress cũ. Supabase metadata/auth/sync là backlog, chưa implement.
 
 ## 7. Component và architecture
 
@@ -449,3 +408,13 @@ Theo yêu cầu của người dùng, sau mỗi task cần cập nhật `doc/PRO
 - Không ghi test/build/push đã thành công nếu chưa xác nhận; không đánh dấu phase hoàn thành khi còn việc bắt buộc.
 - Phase tương lai là hướng dự kiến, không tự triển khai nếu chưa có yêu cầu.
 - Giữ README cho overview/cách chạy/kiến trúc; không tạo thêm tài liệu trùng nội dung.
+
+## 22. Autonomous MVP workflow
+
+Đọc `docs/PRODUCT_DECISIONS.md`, `ROADMAP.md`, `PLANS.md`, `docs/PROJECT_STATE.md` và plan liên quan trước task. Quyết định đã được user xác nhận ưu tiên hơn ví dụ typing cũ trong tài liệu.
+
+Giữ Astro static/SEO/Collections, React islands, pure engine và repository/data boundary. Không SPA rewrite, không import nguồn mock trực tiếp từ React. Không cài dependency nếu native/existing package đủ.
+
+User đã cho phép tự implement/validation/review/commit từng feature và push từng milestone trên dev branch `codex/oxford-learning-mvp`. Không push main (auto-deploy), force push, rewrite history hay commit secrets. Không hỏi lại permission cho scope này. Tiếp tục feature tiếp theo trong roadmap MVP; future BACKLOG không tự triển khai.
+
+Definition of Done: code hoạt động, tests quan trọng pass, Astro/TypeScript/build và HTML checks pass, flow thực tế keyboard/touch/right/wrong/reload/restart/result/media/responsive và console đã kiểm tra, diff review, progress/plan/state/roadmap cập nhật đúng bằng chứng, feature commit và milestone dev push. Không ghi DONE cho phần chưa kiểm tra.
