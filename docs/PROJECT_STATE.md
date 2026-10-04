@@ -3,8 +3,8 @@
 Updated: 2026-10-04
 
 - Branch: `codex/oxford-learning-mvp`. Main auto-deploys; leave it untouched.
-- Current work: M0–M6 DONE. M7 audit and M8 single Image Match spike/comparison VALIDATED; feature commit/dev push pending. Owner confirmed all five choices. Astro/React/data/storage boundaries preserved; content/backend remain BACKLOG.
-- Latest pushed implementation commits: `cc08c34` progress study/review/free links and completed-review restore; `569436b` multiple Image Match corrections. Earlier: `6e34c30` Image Match/memory, `aca4df1` Listen/Image, `430d644` content, `5491253` decisions, `2e58436` foundation. Main/production untouched.
+- Current work: M0–M8 DONE. M7 audit and M8 single Image Match spike/comparison delivered; `870115d` feature commit/dev push confirmed. Owner confirmed all five choices. Astro/React/data/storage boundaries preserved; content/backend remain BACKLOG. M9 discovery polish is PLANNED, another canvas game remains conditional.
+- Latest pushed implementation: `870115d` Image Match Pixi drag/drop/audio/fallback and QA gate. Previous: `cc08c34` progress links/review restore, `569436b` multiple matching corrections, `6e34c30` matching/memory, `aca4df1` Listen/Image, `430d644` content. Main/production untouched.
 - Confirmed decisions: cumulative curated Oxford subsets; mastery on3 scheduled different-day successes;1d/7d/60d, wrong5h; Picture Pick → Listen/Image → Image Match. Engineer chose local US demo voice; no paid services.
 - Implemented content:50 verified Oxford core words +2 supplemental legacy words,30 pictures,52 US MP3s; stable IDs and topic priorities.
 - Implemented M3:2–4-pair native matching boards, any-order word/image selection, locked attempts, wrong-pair correction, shared score/results/restart and persisted image order. Real5-pair3+2 and10-pair4+4+2 flows verified on desktop/tablet/mobile; result focus fixed.
@@ -13,7 +13,7 @@ Updated: 2026-10-04
 - M6 Chrome baseline: Bang played all six games and inspected desktop/tablet/mobile, keyboard/media/progress/persistence/restart with clean console. Viewport reset; temporary debugger interruption recovered with a fresh tab while tests continued.
 - Browser policy: unit/integration → build/typecheck/lint when available → Playwright → Chrome as primary visual QA → responsive. Reconnect reasonably on disconnect, then equivalent safe QA; never block the roadmap when a fallback works.
 - Implemented M6: matching feedback derives all corrections from persisted answers; summary/topic links select review for due words, study for unseen words, free when waiting. Completed review opens setup when a playable due round is available; unfinished rounds resume, results persist when no new review is ready. No engine/storage schema/dependency changes.
-- Exact next action: reviewed feature commit and dev milestone push, then close out M7/M8 status. Next product priority is M9 static discovery scene preview/hierarchy; another Pixi game needs a concrete interaction benefit and physical-mobile performance evidence. Main merge/production deployment remains a separate release action.
+- Exact next action: M9 static discovery scene preview/hierarchy, using the flagship composition and existing owned media without another canvas runtime. Another Pixi game needs a concrete interaction benefit and physical-mobile performance evidence. Main merge/production deployment remains a separate release action.
 - Backlog:full300/1200/3000 editorial content, Supabase metadata, authentication/sync. Not blockers for this local MVP.
 
 Local dev server: `http://127.0.0.1:4323` (started for this task). Unit tests inject time; no developer clock controls or debug routes are exposed in the product.

@@ -27,6 +27,6 @@ Validation:52/52 unit,7/7 built HTML,154 static pages,43 Astro files/0 errors/wa
 
 Chrome Bang: actually dragged Bus, completed Travel2/2 with Enter and automatic result; reload/restart/Simple view/VI checked. Mobile Colors: dragged Red into Green intentionally, matched Yellow, reloaded2/4/100 with correction retained, finished Red/Blue via Enter to4/4/300 and manual result3/4. Visible Chrome warn/error logs empty. Progress inspected separately; physical mobile hardware was not available. Comparative bundle/load evidence and expansion limit are in PRODUCT_AUDIT.md.
 
-Implementation and local quality gate VALIDATED; feature commit/dev milestone push pending. Expansion to another canvas game remains gated by physical-device evidence and a concrete need; discovery preview polish is the next small product step.
+Implementation/local quality gate DONE; feature commit `870115d` pushed to `origin/codex/oxford-learning-mvp`. Expansion to another canvas game remains gated by physical-device evidence and a concrete need; discovery preview polish is the next small product step.
 
 Final review also preserves Simple view across locale changes and ignores unrelated pointerup during captured drag. Primary drag is real; secondary pointerup is injected in the regression. Native single-finger touch remains separately covered; no claim of physical multi-touch QA. Targeted6/6 and subsequent full123/123 exit0 confirmed after fixture corrections.

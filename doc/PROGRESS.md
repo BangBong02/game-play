@@ -428,3 +428,9 @@ Final unit52/52, built HTML7/7, production SITE_URL build154 pages và Astro40 f
 - Diff review/feature commit/dev push đang chốt; chưa ghi DONE/pushed trước khi Git xác nhận.
 
 - Review cuối: guard pointerId tránh event ngón phụ hủy drag; regression dùng mouse drag thật + secondary pointerup injected, không tự nhận là đã kiểm tra multi-touch hardware. Fixture CDP ban đầu gửi event không đúng, đã thay bằng scenario kiểm tra được. Simple view giữ qua đổi EN/VI và giữ round. Targeted6/6 rồi full123/123 exit0,0 flaky/skipped; HTML7/7 và build154/Astro43/0 diagnostics xác nhận lại. Không có blocker local QA.
+
+### M7/M8 DONE — dev milestone đã push
+
+- Feature commit `870115d` — `feat: thêm Image Match kéo thả với PixiJS`. Push xác nhận `origin/codex/oxford-learning-mvp`:6fc322f→870115d. Working changes đã review/stage chính xác20 files, không chứa test-results/dist/debug/secret; diff checks pass.
+- ROADMAP/PLANS/PROJECT_STATE/phase/scene plan closeout theo bằng chứng:52 unit,7 HTML,123 browser exit0/0 flaky/skipped, build154/Astro43/0 diagnostics, Chrome actual gameplay/keyboard/mobile/locale/progress/reload/restart/result và empty app warn/error logs. Viewport đã reset; giữ một tab local preview để owner chơi thử. Ba headless cases có driver readback diagnostic được ghi riêng.
+- M9 static discovery preview/hierarchy là task tiếp theo PLANNED. Chưa mở canvas game khác trước physical-device/performance evidence; content300/1200/3000/backend/auth vẫn BACKLOG. Main/production chưa thay đổi. Docs closeout commit/push theo sau implementation để trạng thái repo khớp milestone đã được xác nhận.
