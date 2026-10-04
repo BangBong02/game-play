@@ -41,9 +41,11 @@ export default function GameSession({ locale, game, words, topics, progressWords
     const selected = topics.some(item => item.id === requested) ? requested! : 'all';
     setTopic(selected);
     setPractice(selectedPractice);
-    setMemory(learningStore.get());
+    const currentMemory = learningStore.get();
+    setMemory(currentMemory);
     const saved = restore(selected, selectedPractice);
-    if (saved) { const resumed = { ...saved, id: saved.id ?? crypto.randomUUID() }; setSession(resumed); setStorageError(!progressStore.save(createSavedProgress(resumed, progressStore.get(key(selected, selectedPractice))))); }
+    const needsNewReview = selectedPractice === 'review' && saved && getStats(saved).finished && questionsForRound(selected, currentMemory, 'review').length > 0;
+    if (saved && !needsNewReview) { const resumed = { ...saved, id: saved.id ?? crypto.randomUUID() }; setSession(resumed); setStorageError(!progressStore.save(createSavedProgress(resumed, progressStore.get(key(selected, selectedPractice))))); }
     setReady(true);
     // Props are static for the lifetime of an Astro page; a locale switch loads a new page.
   }, []);

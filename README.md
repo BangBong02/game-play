@@ -62,7 +62,7 @@ EN/VI đổi UI, giữ route/topic/practice query; learning target luôn English
 
 Mục tiêu **300 ⊂ 1.200 ⊂ 3.000** từ Oxford3000 do Lingoplay curate, không phải các bảng frequency rank chính thức. Demo có **50 Oxford-aligned words +2 supplemental words** (`duck`, `rabbit`) giữ tương thích round cũ. ID không đổi khi reorder; `learningRank` là teaching priority. Topic cũng có priority. Chưa có đủ300 từ; UI ghi rõ lượng content có sẵn.
 
-Round tối đa10 words, matching boards2–4 pairs. Learn&review ưu tiên due words rồi unseen words theo priority; Review chỉ lấy từ đến hạn; Free practice cho phép chơi tự do. Các practice type có storage keys riêng, không overwrite lượt study cũ. Old completed/seen IDs không được tự tính mastery.
+Round tối đa10 words, matching boards2–4 pairs. Learn&review ưu tiên due words rồi unseen words theo priority; Review chỉ lấy từ đến hạn; Free practice cho phép chơi tự do. Các practice type có storage keys riêng, không overwrite lượt study cũ. Old completed/seen IDs không được tự tính mastery. CTA progress chọn ôn đến hạn, học từ mới hoặc chơi tự do khi đang chờ lịch ôn. Lượt review chưa hoàn thành được resume; lượt review hoàn thành có từ đến hạn mới sẽ mở màn bắt đầu lượt tiếp theo, còn result vẫn được khôi phục khi chưa có review mới.
 
 Mastery cần3 lần đúng khi đến lịch ôn, ở các ngàyUTC khác nhau:1 ngày →7 ngày →60 ngày. Sai reset streak và hẹn5 giờ. Repeat sớm/same-day không tăng mastery hay trì hoãn lịch đang chờ. Nếu ôn lại đúng sau một lỗi trong ngày đã được credit, không cộng thêm credit và hẹn ngày sau để tránh hỏi lặp liên tục. Đây là heuristic MVP có thể điều chỉnh, không FSRS.
 

@@ -390,3 +390,17 @@ Chrome đã xuất hiện lại trong browser inventory: extension backend, prof
 - Chơi đủ session các game còn lại: Picture Pick và Listen School2/3; Word Match/Find/Spell Family3/4. Audio opt-in/replay và reset mỗi câu; spelling Enter/Backspace/chữ hoa/reload hoạt động. Progress dùng chung lưu11 từ, mastery vẫn0/300 đúng quy tắc.
 - Chrome timeout khi chuyển game; tab cũ mất debugger sau reset. Inventory lại cùng profile Bang/extension, tạo tab QA mới phục hồi được; không restart app/browser hoặc thay settings. Playwright tiếp tục81/81 trong lúc reconnect. Viewport tạm sẽ reset trước handoff.
 - Diff review/check pass, không thay engine/storage/schema/runtime dependencies. M6 tiếp tục rà CTA progress trước milestone push.
+
+### M6 — CTA progress khi chờ lịch ôn (đang validation)
+
+- Chrome reproduce Family: toàn bộ4 từ đã luyện,0 due/0 unseen; nút Play dẫn vào result Word Match cũ. Back về topic thì Play disabled vì không có study round sẵn sàng.
+- CTA summary/topic nay chọn Review now nếu có due, Learn & review nếu còn unseen, Free practice nếu tất cả đang chờ. Giữ nguyên study/review/free storage keys và quy tắc early repeat không tăng mastery. Heading Mastered dùng label trạng thái đã có.
+- Thêm regression EN/VI đi từ progress→study→waiting free→due review với browser clock, kiểm tra free không tăng successes hoặc hoãn due. Chạy lại unit52/52, HTML7/7 và build154/0 diagnostics; full browser đang kiểm tra, chưa đánh dấu hoàn thành.
+
+- Regression lần ôn kế tiếp trong cùng game reproduce lỗi thật: sau lịch1d và7d, Review now khôi phục result cũ thay vì chuẩn bị review mới. Sửa initial restore: chỉ resume finished review nếu không có playable due round mới; unfinished session vẫn resume, storage được giữ cho đến khi bắt đầu round mới.
+- Targeted6/6 EN/VI×desktop/tablet/mobile pass qua study→free→review1d→reload result→review7d, cả4 từ đạt3 successes. Không đổi system clock; dùng Playwright browser clock. Các interval1d/7d/60d/wrong5h vẫn được kiểm tra riêng trong full suite.
+- Chrome Bang xác nhận Family CTA Free practice mở topic/mode đúng và chơi hoàn chỉnh4/4; mastery/next due không tăng sau early repeat. Heading/progress EN/VI, desktop/tablet/mobile không overflow; console warnings/errors rỗng. Đã reset viewport override về mặc định.
+
+### M6 full validation / Git chuẩn bị
+
+Final unit52/52, built HTML7/7, production SITE_URL build154 pages và Astro40 files/0 errors/warnings/hints; full Playwright87/87 exit0. Sáu games EN/VI, desktop1280/tablet768/mobile390 và width360/430, keyboard/touch, right/wrong/reload/restart/results, SRS, media/storage failures pass. Diff/source review không thấy debug code, secrets, dependencies mới hoặc thay đổi ngoài scope. Không có lint script. Chrome đã hoàn thành actual sessions và visual QA; review cycles1d/7d/60d/wrong5h dùng browser clock tự động. Feature commit/dev push là bước còn lại; M6 chưa đánh dấu DONE trước khi push xác nhận.

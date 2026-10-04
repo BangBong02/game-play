@@ -119,5 +119,5 @@ Roadmap chi tiết/acceptance ở `ROADMAP.md`, decisions ở `docs/PRODUCT_DECI
 ### M6 — Chrome visual audit và polish (IN PROGRESS)
 
 - Kiểm tra trực tiếp sáu games hiện có, filters/topic, audio/images, feedback, result, progress, keyboard/reload/restart và responsive bằng Chrome profile Bang.
-- Sửa lỗi nhỏ đã reproduce: Image Match phải hiển thị tất cả cặp cần xem lại, kể cả sau reload; không thêm state lưu trữ/dependency.
+- Sửa lỗi nhỏ đã reproduce: Image Match hiển thị tất cả cặp cần xem lại kể cả reload; CTA progress chọn study/review/free đúng trạng thái để có đường chơi khi đang chờ ôn; finished review không che lượt ôn đến hạn mới. Không thêm state lưu trữ/dependency.
 - Acceptance: unit/HTML/build/Playwright pass; Chrome desktop/tablet/mobile và console được kiểm tra; docs/Git review và dev commit/push hoàn tất. Không mở rộng bulk content/backend.

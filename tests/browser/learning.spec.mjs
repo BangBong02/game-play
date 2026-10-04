@@ -61,6 +61,53 @@ async function finishChoices(page, session) {
 }
 
 for (const locale of ['en', 'vi']) {
+  test(`progress links choose new study, waiting free practice and due review (${locale})`, async ({ page }) => {
+    const start = new Date('2026-10-04T04:00:00Z');
+    await page.clock.setFixedTime(start);
+    await page.goto(`/${locale}/progress`);
+    const colors = page.locator('.topic-progress-card').filter({ has: page.locator('a[href*="topic=colors"]') });
+    const link = colors.locator('.topic-progress-links a').first();
+    await expect(link).toHaveAttribute('href', /practice=study$/);
+    await press(page, link);
+    await page.locator('.topic-picker > .primary-button').waitFor();
+    await press(page, page.locator('.topic-picker > .primary-button'));
+    await page.locator('.game-shell').waitFor();
+    await finishChoices(page, await readRound(page, 'word-match'));
+    const learned = await readMemory(page);
+    await page.goto(`/${locale}/progress`);
+    await expect(link).toHaveAttribute('href', /practice=free$/);
+    await expect(link).toHaveText(locale === 'en' ? 'Free practice →' : 'Chơi tự do →');
+    await press(page, link);
+    await expect(page.locator('.practice-options button').last()).toHaveAttribute('aria-pressed', 'true');
+    await press(page, page.locator('.topic-picker > .primary-button'));
+    await page.locator('.game-shell').waitFor();
+    await finishChoices(page, await readRound(page, 'word-match', 'colors', 'free'));
+    for (const [id, word] of Object.entries((await readMemory(page)).words)) {
+      expect(word.successes).toBe(learned.words[id].successes);
+      expect(word.dueAt).toBe(learned.words[id].dueAt);
+    }
+    await page.clock.setFixedTime(new Date(+start + 86400000));
+    await page.goto(`/${locale}/progress`);
+    await expect(link).toHaveAttribute('href', /practice=review$/);
+    await expect(link).toHaveText(locale === 'en' ? 'Review now →' : 'Ôn ngay →');
+    await press(page, link);
+    await page.locator('.topic-picker > .primary-button').waitFor();
+    await press(page, page.locator('.topic-picker > .primary-button'));
+    await page.locator('.game-shell').waitFor();
+    await finishChoices(page, await readRound(page, 'word-match', 'colors', 'review'));
+    await page.reload();
+    await expect(page.locator('.result-score strong')).toHaveText('4 / 4');
+    await page.clock.setFixedTime(new Date(+start + 8 * 86400000));
+    await page.goto(`/${locale}/progress`);
+    await press(page, link);
+    await page.locator('.topic-picker > .primary-button').waitFor({ timeout: 3000 });
+    await press(page, page.locator('.topic-picker > .primary-button'));
+    await page.locator('.game-shell').waitFor();
+    await finishChoices(page, await readRound(page, 'word-match', 'colors', 'review'));
+    expect(Object.values((await readMemory(page)).words).every(word => word.successes === 3)).toBe(true);
+    await fits(page);
+  });
+
   test(`homepage skill filters and content navigation (${locale})`, async ({ page }) => {
     await page.goto(`/${locale}`);
     await expect(page.locator('.home-game-card:visible')).toHaveCount(6);
