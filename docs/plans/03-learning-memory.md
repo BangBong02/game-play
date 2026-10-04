@@ -3,7 +3,7 @@
 ## Objective
 Turn round scores into evidence-based local learning progress without treating seen words as mastered.
 ## Current state
-Versioned local round saves and completed IDs; no cross-game learning memory or due scheduling.
+At planning: versioned local round saves and completed IDs, without cross-game learning memory or due scheduling. Final delivery status is recorded below.
 ## Desired state
 Canonical per-word state with three different-day successes, adjustable 1d/7d/60d intervals and mistake5h; due-first rounds; honest cumulative targets and topic progress.
 ## User flow
@@ -21,7 +21,7 @@ States distinguish unseen/learning/correct/due/mastered; topic completion requir
 ## Risks
 Local progress stays on this device. This is a product heuristic, not a replacement for a scientifically calibrated memory model. Course targets do not imply all3000 words are shipped.
 ## Progress
-- Implementation and equivalent browser QA complete. Pure scheduler, defensive versioned memory, separate practice round keys, global counts/progress and static vocabulary pages added. Unit52/52 includes11 targeted memory tests; HTML7/7 and build154 pages/0 diagnostics pass. Playwright72-case matrix plus3 default matching checks pass; feature Git milestone pending.
+- Implementation and equivalent browser QA complete. Pure scheduler, defensive versioned memory, separate practice round keys, global counts/progress and static vocabulary pages added. Unit52/52 includes11 targeted memory tests; HTML7/7 and build154 pages/0 diagnostics pass. Playwright72-case matrix plus3 default matching checks pass; Status:DONE. Validated feature `6e34c30` pushed on dev branch.
 ## Decisions
 Owner accepted three separate-day successes and exact schedule. Supabase/auth/sync postponed.
 

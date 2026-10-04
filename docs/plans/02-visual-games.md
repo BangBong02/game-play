@@ -3,7 +3,7 @@
 ## Objective
 Add two distinct polished visual interactions while reusing canonical vocabulary and the existing React engine.
 ## Current state
-Picture Pick and three text/spelling modes; future media eligibility exists but no listening/matching games.
+At planning: Picture Pick and three text/spelling modes; future media eligibility existed but no listening/matching games. Final delivery status is recorded below.
 ## Desired state
 Listen/Image asks for a picture after explicit playback; Image Match connects English words to pictures through accessible two-step selection.
 ## User flow
@@ -25,6 +25,6 @@ Do not expose the spoken target as visible text before listening answer. Describ
 ## Decisions
 Owner approved Picture Pick → Listen/Image → Image Match. Native click/tap/keyboard matching, no PixiJS.
 
-M3 implementation complete:matching questions and2–4-pair boards (5 splits3+2); any-order attempts, stable imageOrder on save/reload, keyboard focus and wrong-pair correction. Unit41/41 passed before memory integration; final combined51/51 and HTML7/7/build154 passed. Chrome disconnected before M3 interaction testing:browser QA pending, feature not DONE or committed.
+Checkpoint before fallback QA (2026-10-04):matching questions and2–4-pair boards (5 splits3+2); any-order attempts, stable imageOrder on save/reload, keyboard focus and wrong-pair correction implemented. Unit41/41 passed before memory integration; combined51/51 and HTML7/7/build154 passed. Chrome disconnected before M3 interaction testing, so interactive QA/commit were pending at that checkpoint.
 
-Final M3 QA:Playwright72-case desktop/tablet/mobile matrix plus3 default10-pair checks passed; EN/VI5-pair3+2 and10-pair4+4+2 rounds, any-order wrong/right, answer locks, saved image order, reload/results/restart, Tab/Enter/touch, completed-pair progress and global memory. Focus now moves to result heading on completion. Screenshots reviewed; no overflow at360/390/430/768/1280. Shared media failure/retry/fallback verified. Unit52/52, HTML7/7, build154/0 diagnostics. Chrome Integration is optional; former blocker removed. Feature Git milestone pending.
+Final M3 QA:Playwright72-case desktop/tablet/mobile matrix plus3 default10-pair checks passed; EN/VI5-pair3+2 and10-pair4+4+2 rounds, any-order wrong/right, answer locks, saved image order, reload/results/restart, Tab/Enter/touch, completed-pair progress and global memory. Focus now moves to result heading on completion. Screenshots reviewed; no overflow at360/390/430/768/1280. Shared media failure/retry/fallback verified. Unit52/52, HTML7/7, build154/0 diagnostics. Chrome Integration is optional; former blocker removed. Status:DONE. Validated feature `6e34c30` pushed on dev branch.

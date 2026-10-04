@@ -13,7 +13,7 @@ Cập nhật gần nhất: **2026-10-04** (Asia/Bangkok).
 | 4 — Phát hành static | Hoàn thành | Worker game-play-vn trong account maotuankiet77; GitHub main tự test/build/deploy, SEO/404 và game public pass |
 | 5 — Game-first và UI locale | Hoàn thành | 4 game riêng, filter skill, EN/VI cùng English data, rank progression và progress v3; tests/build/Chrome pass |
 | 6 — Media-ready content | Hoàn thành | Optional media, query capability trước window, repository boundary; 37 unit + 5 HTML tests/build/Chrome pass |
-| 7 — Oxford-aligned local MVP | Validation hoàn tất, Git milestone đang chốt | Image Match, memory/progress,50 core words;52 unit +7 HTML +72 matrix browser checks và3 checks lượt10 cặp pass |
+| 7 — Oxford-aligned local MVP | Hoàn thành | Image Match, memory/progress,50 core words;52 unit +7 HTML +72 matrix browser checks và3 checks lượt10 cặp pass; feature milestone đã push dev |
 
 Phạm vi/tiêu chí từng phase: [PHASES.md](PHASES.md).
 
@@ -368,3 +368,7 @@ Validation đã chạy:unit51/51, HTML7/7, SITE_URL build154 static pages/0 erro
 - Browser clock kiểm tra1d/7d/60d, wrong5h, early repeats không farm mastery, reset mastery và due-only review. School3 pictured mastered/4 core không complete; round migration giữ v2 và locale switch, không tạo mastery từ old seen IDs. Blocked/corrupt/partial storage và media404→retry/fallback được kiểm tra.
 - Width360/390/430/768/1280 không overflow; ảnh matching/progress desktop/tablet/mobile được render và review trực tiếp. Console app không có warning/error ngoài404 có chủ ý trong media-failure fixture. Optional remote Google Fonts CSS được thay bằng CSS rỗng trong test để kiểm tra system-font fallback, không phụ thuộc mạng ngoài và không suppress lỗi app.
 - Runner trong sandbox bị kẹt lúc đóng process tree trên Windows; dùng quyền chạy QA local để runner tự đóng đúng tiến trình do nó tạo. Final matrix và lượt10 cặp đều kết thúc **exit0**. Screenshot/trace/report ở test-results/ gitignored. Git milestone đang chốt trên dev branch; main/production không đổi.
+
+### M5 DONE — Handoff và Git milestone
+
+Commit `6e34c30` — `feat: thêm Image Match và learning progress local` — đã push thành công `origin/codex/oxford-learning-mvp`. Matching và memory có integration chung nên giữ trong một commit có code/tests/docs nhất quán. Tiếp tục M5:review cuối, cập nhật roadmap/state/plans và chốt local MVP; không còn required work hoặc QA blocker. README có cách tái chạy unit/build/HTML/Playwright. Không push main/deploy production hoặc triển khai B1/B2/B3 BACKLOG. M5 handoff là documentation commit tiếp theo của milestone này.
