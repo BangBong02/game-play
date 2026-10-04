@@ -116,8 +116,10 @@ Phạm vi mới đã được người dùng yêu cầu:50 từ demo có metadat
 
 Roadmap chi tiết/acceptance ở `ROADMAP.md`, decisions ở `docs/PRODUCT_DECISIONS.md`, state ở `docs/PROJECT_STATE.md`; nhật ký thực tế vẫn ở `doc/PROGRESS.md`. Hoàn thành khi nội dung/media/game/memory/progress được validation tự động và browser desktop/tablet/mobile/keyboard/reload/restart/console, docs và dev Git milestones cập nhật. Theo yêu cầu mới nhất ngày04/10, sau automated tests/build/Playwright dùng Chrome Integration làm QA trực quan chính, rồi kiểm tra desktop/tablet/mobile. Nếu reconnect không được, dùng Playwright/Codex built-in browser hoặc phương pháp an toàn tương đương; integration disconnect không phải blocker nếu vẫn kiểm tra được feature.
 
-### M6 — Chrome visual audit và polish (IN PROGRESS)
+### M6 — Chrome visual audit và polish (DONE)
 
 - Kiểm tra trực tiếp sáu games hiện có, filters/topic, audio/images, feedback, result, progress, keyboard/reload/restart và responsive bằng Chrome profile Bang.
 - Sửa lỗi nhỏ đã reproduce: Image Match hiển thị tất cả cặp cần xem lại kể cả reload; CTA progress chọn study/review/free đúng trạng thái để có đường chơi khi đang chờ ôn; finished review không che lượt ôn đến hạn mới. Không thêm state lưu trữ/dependency.
 - Acceptance: unit/HTML/build/Playwright pass; Chrome desktop/tablet/mobile và console được kiểm tra; docs/Git review và dev commit/push hoàn tất. Không mở rộng bulk content/backend.
+
+M6 kết quả: unit52/52, HTML7/7, build154/0 diagnostics, Playwright87/87; Chrome desktop/tablet/mobile EN/VI, sáu sessions, audio/images, keyboard/reload/restart/progress và console pass. Fix commits569436b/cc08c34 đã push dev branch; source/data/storage boundaries giữ nguyên.

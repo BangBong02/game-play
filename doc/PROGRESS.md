@@ -404,3 +404,9 @@ Chrome đã xuất hiện lại trong browser inventory: extension backend, prof
 ### M6 full validation / Git chuẩn bị
 
 Final unit52/52, built HTML7/7, production SITE_URL build154 pages và Astro40 files/0 errors/warnings/hints; full Playwright87/87 exit0. Sáu games EN/VI, desktop1280/tablet768/mobile390 và width360/430, keyboard/touch, right/wrong/reload/restart/results, SRS, media/storage failures pass. Diff/source review không thấy debug code, secrets, dependencies mới hoặc thay đổi ngoài scope. Không có lint script. Chrome đã hoàn thành actual sessions và visual QA; review cycles1d/7d/60d/wrong5h dùng browser clock tự động. Feature commit/dev push là bước còn lại; M6 chưa đánh dấu DONE trước khi push xác nhận.
+
+### M6 DONE — dev milestone đã push
+
+- `569436b` — `fix: hiển thị đầy đủ correction trong Image Match`; `cc08c34` — `fix: nối progress với lượt luyện và ôn đến hạn`. Push đã xác nhận origin/codex/oxford-learning-mvp từd6ab96d lêncc08c34.
+- ROADMAP/PROJECT_STATE/PHASES cập nhật M6 DONE sau khi validation và feature push thực sự hoàn tất. Current scope M0–M6 COMPLETE; future B1 content300/1200/3000, B2 Supabase, B3 auth/sync vẫn BACKLOG có trigger riêng. Không còn required work/hard blocker, không tự mở scope backend hoặc bulk content.
+- Full validation cuối:52 unit +7 HTML +87 browser tests pass; production build154 pages/0 diagnostics; Chrome actual six-game sessions, desktop/tablet/mobile, EN/VI, media, keyboard, progress/reload/restart và clean console. Viewport đã reset. Docs handoff commit/push theo sau để repo có state chính xác; main/production giữ nguyên.
