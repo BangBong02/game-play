@@ -123,3 +123,7 @@ Roadmap chi tiết/acceptance ở `ROADMAP.md`, decisions ở `docs/PRODUCT_DECI
 - Acceptance: unit/HTML/build/Playwright pass; Chrome desktop/tablet/mobile và console được kiểm tra; docs/Git review và dev commit/push hoàn tất. Không mở rộng bulk content/backend.
 
 M6 kết quả: unit52/52, HTML7/7, build154/0 diagnostics, Playwright87/87; Chrome desktop/tablet/mobile EN/VI, sáu sessions, audio/images, keyboard/reload/restart/progress và console pass. Fix commits569436b/cc08c34 đã push dev branch; source/data/storage boundaries giữ nguyên.
+
+## Phase 8 — Game feel trước content scale (2026-10-04)
+
+Owner yêu cầu audit mới, so sánh reference và nghiên cứu PixiJS v8; đã trả lời một batch và chốt Image Match drag/drop flagship, gentle pacing, playful minimal, pronunciation/SFX/mute và một spike có quality gate/DOM fallback. ROADMAP M7/M8 theo các gap thực tế; không copy danh sách milestone gợi ý, không tự mở scene framework hoặc migrate sáu games. Hoàn thành spike khi real interaction/responsive/a11y/persistence/media/cleanup và full validation pass, comparison ghi rõ cost/limitations, docs/dev Git cập nhật. Nội dung300/1200/3000 và backend/auth vẫn BACKLOG.

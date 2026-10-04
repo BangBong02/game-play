@@ -32,10 +32,11 @@ async function press(page, locator) {
   else { await locator.focus(); await page.keyboard.press('Enter'); }
 }
 async function play(page, game, topic = 'colors', locale = 'en', practice = '') {
-  await page.goto(`/${locale}/games/${game}?topic=${topic}${practice ? `&practice=${practice}` : ''}`);
+  await page.goto(`/${locale}/games/${game}?topic=${topic}${practice ? `&practice=${practice}` : ''}${game === 'image-match' ? '&view=simple' : ''}`);
   await page.locator('.topic-picker > .primary-button').waitFor();
   await press(page, page.locator('.topic-picker > .primary-button'));
   await page.locator('.game-shell').waitFor();
+  if (game === 'image-match') await page.locator('.matching-game').waitFor();
   await fits(page);
   return readRound(page, game, topic, practice);
 }

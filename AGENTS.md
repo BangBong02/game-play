@@ -108,7 +108,7 @@ Mỗi game cần kiểm tra desktop, tablet và mobile; keyboard và touch đề
 
 Homepage game-first, filter kỹ năng native; topic optional. Không dùng Easy/Medium/Hard làm progression chính. Giữ EN/VI là UI locale, learning target English. Game có session ngắn, hình/audio/đáp án ưu tiên, feedback gọn, keyboard/touch và reload/restart/results.
 
-Không thêm PixiJS hay dependency game/audio trong MVP. Impeccable chỉ dùng nếu có sẵn; không cài chỉ vì thiếu tool.
+MVP ban đầu không thêm PixiJS. Theo direction ngày04/10, owner đã chốt một PixiJS v8 spike cho Image Match để kiểm chứng game feel; giữ DOM fallback và quality gate trước khi mở rộng. Website/SEO/progress vẫn Astro/React/DOM. Không thêm audio/animation framework nếu Browser APIs đủ. Impeccable chỉ dùng nếu có sẵn; không cài chỉ vì thiếu tool.
 
 ## 6. Content và learning memory
 

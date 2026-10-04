@@ -38,7 +38,7 @@ Astro prerender homepage, game/vocabulary/progress pages và Content Collections
 - `tests/game.test.ts`, `tests/learning.test.ts`: unit/domain regressions; `tests/site.test.ts`: built HTML/SEO/content checks.
 - `tests/browser/learning.spec.mjs`, `playwright.config.mjs`: real Chromium interaction và responsive QA.
 
-Không React router/SPA, PixiJS, audio manager, state library hoặc data import trực tiếp từ React. Future Supabase metadata sẽ trả cùng normalized Word contract; build/refresh policy sẽ quyết định khi thực sự tích hợp. Auth/sync vẫn là backlog.
+Image Match có một scene PixiJS v8 lazy-loaded, giữ real HTML buttons cho keyboard/touch và native pointer capture cho kéo/thả. Pixi chỉ render hình/animation; engine, score và memory vẫn React/pure data. `Simple view` (hoặc `?view=simple`) dùng board DOM cũ; renderer/media/chunk failure tự fallback. Các game khác không tải Pixi. Không React router/SPA, audio manager, state library hoặc data import trực tiếp từ React. Future Supabase metadata sẽ trả cùng normalized Word contract; auth/sync vẫn là backlog.
 
 ## Routes và game
 
@@ -47,7 +47,7 @@ Không React router/SPA, PixiJS, audio manager, state library hoặc data import
 /[locale]                              # games + skill filters
 /[locale]/games/picture-pick            # Image → Word
 /[locale]/games/listen-and-pick         # Listen → Image
-/[locale]/games/image-match             # select word → select image
+/[locale]/games/image-match             # drag picture → word; tap/keyboard; Simple view
 /[locale]/games/word-match              # Word → Meaning
 /[locale]/games/find-the-word           # Meaning → Word
 /[locale]/games/spell-the-word          # typing
@@ -70,7 +70,7 @@ Global memory theo canonical ID dùng chung giữa game/topic/locale. Topic comp
 
 ## Media
 
-30 images:20 project-owned SVG nhỏ giữ URL cũ +10 WebP original;52 MP3 synthetic English US offline, khoảng480KB tổng. Audio chỉ play/replay khi người dùng yêu cầu, dừng khi đổi câu; lỗi có retry, hình lỗi có mô tả thay thế.
+30 images:20 project-owned SVG nhỏ giữ URL cũ +10 WebP original;52 MP3 synthetic English US offline, khoảng480KB tổng. Listening phát khi bấm nghe/replay; Image Match scene phát pronunciation và SFX ngắn khi ghép sau khi bắt đầu chơi, có mute giữ qua các board. Audio dừng khi đổi board/câu; lỗi có retry, hình lỗi có mô tả thay thế. Board đúng tự chuyển sau1,6 giây; board sai giữ correction để chủ động tiếp tục. Điểm game không thay tiêu chí SRS/mastery.
 
 URLs/alt là metadata, renderer không đoán filename/extension/provider. Local paths và HTTPS CDN đều dùng chung contract; media capability lọc trước count. Không copy Oxford hoặc game tham khảo artwork/audio/definitions/examples.
 

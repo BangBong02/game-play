@@ -19,7 +19,7 @@ Updated: 2026-10-04. Source of truth for the current autonomous MVP; historical 
 - Review due words first, then unseen words in editorial priority order, in short rounds of up to ten. When nothing is due/new, offer explicit free practice rather than silently resetting learning memory.
 - Topic completion counts mastered core words in the **available dataset**; supplemental compatibility words do not count toward Oxford targets. A mastered word due for maintenance is also marked for review. Existing round progress is retained but does not become mastery without new learning evidence.
 - A word can belong to multiple topics; global learning memory uses its canonical ID and never double-counts it toward the vocabulary target.
-- Keyboard and touch operate every activity. Image Match uses select-word → select-image; drag gestures are unnecessary for the MVP and would make mobile/keyboard access harder.
+- Keyboard and touch operate every activity. The initial MVP uses select-word → select-image; the approved game-feel spike adds drag/drop as an equivalent input path and keeps native DOM fallback.
 
 ## Research and boundaries
 
@@ -33,3 +33,15 @@ Updated: 2026-10-04. Source of truth for the current autonomous MVP; historical 
 Starting HEAD: `5457f7b`. Astro 7 + React 19 + TypeScript; Content Collections; independent pure vocabulary engine; four games; 20 local illustrated words; versioned round storage with legacy migration. Baseline: 37 unit tests, 5 built-HTML tests and production-configured build passed. Main is connected to Cloudflare Workers Builds. Existing media-ready work was reviewed and committed as `2e58436` before new implementation.
 
 Same-day relearning after a mistake:if a due correction occurs on an already credited UTC day, keep the success count unchanged and schedule1 day later. This avoids an immediate review loop without awarding a second credit. Study/review/free rounds have separate v3 keys; global memory is shared.
+
+## Game-feel direction — owner confirmed 2026-10-04
+
+All five answers to the initial audit batch were explicitly confirmed; no ASSUMPTION is needed for these choices.
+
+- Flagship: **Image Match drag/drop**, snapping pictures into word destinations, with tap/select and keyboard equivalence. Existing engine and persisted answers remain authoritative.
+- Gentle pacing: all-correct boards advance after brief visual feedback. A board containing mistakes keeps its correction and requires explicit Continue. No timer, lives or game-over pressure in this spike.
+- Playful minimal identity: large images, light scene background, short entrance/snap/wrong/board transitions; current owned media first, no mascot or continuously moving scenery.
+- Pronunciation + short correct/wrong SFX after the user's play gesture, clear mute, English US offline voice, no background music. This supersedes the initial matching audio-on-request-only default for the new scene.
+- Scope: one **PixiJS v8 production-quality spike**, lazy-loaded into the React game island, with the existing DOM board as fallback/comparison. Score/streak are game feedback and never alter SRS/mastery. No other game's renderer migration until the comparison/QA gate passes.
+- Priority is visual identity/interaction/pacing/mobile consistency before bulk300/1200/3000, Supabase or auth. Home/filters/topic/progress/settings/text and SEO stay DOM; no SPA or website rewrite.
+- Evidence, limitations and quality gate: `PRODUCT_AUDIT.md`. Delivery plan: `plans/image-match-scene.md`.

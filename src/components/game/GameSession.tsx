@@ -99,7 +99,7 @@ export default function GameSession({ locale, game, words, topics, progressWords
     document.querySelectorAll<HTMLAnchorElement>('[data-locale]').forEach(link => { const target = new URL(link.href); target.search = url.search; link.href = target.href; });
   }
   return <div className={`game-session${session ? ' is-playing' : ''}`}>
-    {!ready ? <p className="game-loading" role="status">{t.loading}</p> : session ? <VocabularyGame session={session} topicName={topicLabel(locale, topic)} gameName={game.title[locale]} locale={locale} onAction={act} onNewRound={moreWords ? () => start(true) : undefined} onBack={() => { setSession(null); requestAnimationFrame(() => picker.current?.focus()); }} /> : <section className="topic-picker">
+    {!ready ? <p className="game-loading" role="status">{t.loading}</p> : session ? <VocabularyGame session={session} topicName={topicLabel(locale, topic)} gameName={game.title[locale]} locale={locale} audioUrls={Object.fromEntries(pool.filter(word => word.audioUrl).map(word => [word.id, word.audioUrl!]))} onAction={act} onNewRound={moreWords ? () => start(true) : undefined} onBack={() => { setSession(null); requestAnimationFrame(() => picker.current?.focus()); }} /> : <section className="topic-picker">
       <label htmlFor="game-topic">{t.topic}</label>
       <select id="game-topic" ref={picker} value={topic} onChange={event => {
         const selected = event.target.value; setTopic(selected);

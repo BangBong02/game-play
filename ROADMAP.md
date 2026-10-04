@@ -1,6 +1,6 @@
 # Lingoplay roadmap
 
-Updated: 2026-10-04. Current delivery scope is the local Oxford-aligned learning MVP. Future items explicitly marked BACKLOG are not required for this delivery.
+Updated: 2026-10-04. Functional local MVP M0–M6 is delivered. Current priority is the owner-approved game-feel audit and one Image Match hybrid spike; content/backend remain BACKLOG.
 
 | ID | Feature / goal | Dependencies | Priority | Acceptance | Status |
 |---|---|---|---|---|---|
@@ -13,7 +13,11 @@ Updated: 2026-10-04. Current delivery scope is the local Oxford-aligned learning
 | M4.2 | Vocabulary targets, topic progress and review screen | M4.1 | P0 | Available/demo counts honest; unseen/learning/correct/due/mastered distinct; topic completion based on mastery; EN/VI | DONE |
 | M5.1 | Release validation and handoff | All MVP features | P0 | Six games tested desktop/tablet/mobile, keyboard, wrong/right, reload/restart/results; console clean; unit/HTML/build pass; review diff; docs and dev pushes current | DONE |
 | M6.1 | Chrome visual audit and incremental gameplay polish | M0–M5, connected Bang profile | P0 | Six current games actually played; Image Match multiple corrections/reload accurate; actionable study/review/free progress links and repeated review cycles; desktop/tablet/mobile, keyboard, media/progress/console; full validation and dev push | DONE |
-| B1 | Expand verified content to 300, then 1,200, then 3,000 | MVP, editorial/source review | P1 | Useful curated order; cumulative boundaries; content/media QA; lawful provenance | BACKLOG |
+| M7.1 | Product gap audit and owner decisions | M6, reference play, Pixi v8 research | P0 | Graded evidence-based comparison; one batch answered; new direction documented; remaining reference observations honest | VALIDATED; Git pending |
+| M8.1 | Image Match hybrid flagship spike | M7.1 | P0 | One lazy Pixi scene, image drag/snap, tap/keyboard, gentle transitions, pronunciation/SFX/mute, DOM fallback; unchanged engine/SRS/storage; production QA gate | VALIDATED; Git pending |
+| M8.2 | DOM/scene comparison and rollout decision | M8.1 | P0 | Record quality/complexity/bundle/responsive/accessibility/performance evidence and physical-device limits; promote only if useful; dev milestone validation/push | VALIDATED; Git pending |
+| M9.1 | Discovery previews and selected game polish | M8.2, measured gaps | P1 | Static flagship card preview and consistent hierarchy; another canvas game waits for physical-device evidence and a concrete benefit | PLANNED |
+| B1 | Expand verified content to 300, then 1,200, then 3,000 | Game-feel gate, editorial/source review | P1 | Useful curated order; cumulative boundaries; content/media QA; lawful provenance | BACKLOG |
 | B2 | Supabase metadata repository | Demonstrated local-data constraint | P2 | Same normalized Word contract; build/refresh strategy; no engine coupling | BACKLOG |
 | B3 | Account sync/auth | Owner request, B2 | P3 | Explicit sync/conflict/privacy policy; local progress migration | BACKLOG |
 
