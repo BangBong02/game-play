@@ -6,7 +6,7 @@ Each plan contains: Objective, Current state, Desired state, User flow, Technica
 
 Browser integration failure must not block the roadmap when equivalent QA can be performed with Playwright, the Codex built-in browser, or another safe local validation method.
 
-Local QA priority: automated tests / Playwright → Codex built-in browser → Chrome Integration when necessary. Switch to equivalent QA if integration disconnects; mark BLOCKED only when no reasonable validation method remains. Record actual interaction, viewport, keyboard, persistence and console checks.
+Local QA order: unit/integration tests → build/typecheck/lint when available → Playwright → Chrome Integration as the primary visual QA → responsive desktop/tablet/mobile. Use the connected Bang profile so the owner can observe actual interactions. Try a reasonable reconnect on failure, then switch to Playwright, the Codex built-in browser or equivalent safe validation and continue. Mark BLOCKED only when no reasonable validation method remains. Record actual interaction, viewport, keyboard/touch, persistence and console checks.
 
 1. Read `AGENTS.md`, `docs/PRODUCT_DECISIONS.md`, `ROADMAP.md`, `docs/PROJECT_STATE.md`, `doc/PHASES.md` and recent `doc/PROGRESS.md` entries before implementation.
 2. Inspect relevant code and preserve user edits. Select the smallest correct change within the Astro/React/data boundaries.

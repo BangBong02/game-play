@@ -288,7 +288,7 @@ Nhưng logic quan trọng như scoring, accuracy, matching state hoặc learning
 
 Browser integration failure must not block the roadmap when equivalent QA can be performed with Playwright, the Codex built-in browser, or another safe local validation method.
 
-Với localhost/local development, ưu tiên automated tests / Playwright, sau đó Codex built-in browser, rồi Chrome Integration khi thực sự cần. Nếu Chrome disconnect, tự chuyển sang phương pháp QA tương đương; chỉ báo BLOCKED khi không còn cách hợp lý để kiểm tra feature. Ghi rõ phương pháp và kết quả thực tế.
+Với localhost/local development, chạy unit/integration tests → build/typecheck/lint nếu có → Playwright → Chrome Integration để QA trực quan như người dùng thật → responsive desktop/tablet/mobile. Chrome là phương pháp QA trực quan chính khi kết nối hoạt động để người dùng quan sát thao tác. Nếu Chrome disconnect, thử reconnect hợp lý rồi tự chuyển sang Playwright, Codex built-in browser hoặc phương pháp an toàn tương đương; ghi lại vấn đề và tiếp tục roadmap. Chỉ báo BLOCKED khi không còn cách hợp lý để kiểm tra feature. Ghi rõ interaction, keyboard/touch, persistence, viewport và console thực tế.
 
 Sau khi implementation xong, nếu môi trường cho phép:
 

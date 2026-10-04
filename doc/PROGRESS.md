@@ -372,3 +372,21 @@ Validation đã chạy:unit51/51, HTML7/7, SITE_URL build154 static pages/0 erro
 ### M5 DONE — Handoff và Git milestone
 
 Commit `6e34c30` — `feat: thêm Image Match và learning progress local` — đã push thành công `origin/codex/oxford-learning-mvp`. Matching và memory có integration chung nên giữ trong một commit có code/tests/docs nhất quán. Tiếp tục M5:review cuối, cập nhật roadmap/state/plans và chốt local MVP; không còn required work hoặc QA blocker. README có cách tái chạy unit/build/HTML/Playwright. Không push main/deploy production hoặc triển khai B1/B2/B3 BACKLOG. M5 handoff là documentation commit tiếp theo của milestone này.
+
+## 2026-10-04 — Kiểm tra lại Chrome Integration theo yêu cầu
+
+Chrome đã xuất hiện lại trong browser inventory: extension backend, profile Bang, browser ID2. Mở tab local127.0.0.1:4323/en thành công, đọc DOM và click filter Listening xác nhận trạng thái1 game; kết nối đọc/điều khiển hoạt động thật. Kiểm tra các thư mục log Codex/OpenAI/computer-use liên quan vẫn không tìm thấy log mới quanh thời điểm sự cố, nên không kết luận nguyên nhân disconnect trước đó. Nếu chỉ thiếu Chrome trong menu@, hướng dẫn chính thức nêu toggle Settings > Computer Use kiểm soát việc browser xuất hiện và chat mới có thể xóa connection state riêng của chat: https://learn.chatgpt.com/docs/chrome-extension. Không thay cài đặt, restart app/browser hay sửa code; chỉ cập nhật nhật ký. Local QA tiếp tục ưu tiên Playwright, không phụ thuộc Chrome.
+
+## 2026-10-04 — M6 Chrome audit/polish bắt đầu
+
+- Chrome profile Bang đã mở localhost, thao tác filter Matching và chơi Image Match Colors. Reproduce hai cặp sai liên tiếp: feedback vẫn chỉ nhắc từ sai đầu tiên.
+- Sửa bằng cách derive toàn bộ từ ghép sai từ answers của bảng, giữ nguyên engine/localStorage. Thêm regression EN/VI, out-of-order, reload, result và memory; validation đang chờ chạy.
+- Cập nhật QA order theo yêu cầu mới: automated tests/build/Playwright rồi Chrome trực quan và responsive, vẫn giữ quy tắc fallback không block roadmap. M6 scope là audit/polish gameplay hiện có; không triển khai bulk content/Supabase/auth.
+
+### Image Match fix — validation hoàn tất
+
+- Unit52/52, built HTML7/7, SITE_URL build154 pages/0 diagnostics; full Playwright81/81 exit0 sau khi sửa test keyboard locator (test ban đầu focus vào span thay vì button, không phải lỗi app).
+- Chrome Bang: Image Match Colors hai cặp sai + hai đúng, correction đầy đủ EN/VI, reload/order/locks, keyboard, result2/4, restart0/4. Review screenshots desktop, tablet và mobile; mobile không overflow, console warnings/errors rỗng.
+- Chơi đủ session các game còn lại: Picture Pick và Listen School2/3; Word Match/Find/Spell Family3/4. Audio opt-in/replay và reset mỗi câu; spelling Enter/Backspace/chữ hoa/reload hoạt động. Progress dùng chung lưu11 từ, mastery vẫn0/300 đúng quy tắc.
+- Chrome timeout khi chuyển game; tab cũ mất debugger sau reset. Inventory lại cùng profile Bang/extension, tạo tab QA mới phục hồi được; không restart app/browser hoặc thay settings. Playwright tiếp tục81/81 trong lúc reconnect. Viewport tạm sẽ reset trước handoff.
+- Diff review/check pass, không thay engine/storage/schema/runtime dependencies. M6 tiếp tục rà CTA progress trước milestone push.

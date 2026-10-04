@@ -134,6 +134,33 @@ for (const locale of ['en', 'vi']) {
     });
   }
 
+  test(`Image Match: multiple corrections survive reload (${locale})`, async ({ page }) => {
+    const session = await play(page, 'image-match', 'colors', locale);
+    const imageFor = question => page.locator('.match-image').filter({ has: page.locator(`img[src="${question.image.url}"]`) });
+    const wordFor = question => page.locator('.match-word').filter({ has: page.getByText(question.correctAnswer, { exact: true }) });
+    for (const index of [2, 0]) {
+      await press(page, wordFor(session.questions[index]));
+      await press(page, imageFor(session.questions[1]));
+      await expect(page.locator('.matching-game .notice')).toContainText(session.questions[index].correctAnswer);
+    }
+    for (const index of [2, 0]) {
+      await expect(page.locator('.matching-game .notice')).toContainText(session.questions[index].correctAnswer);
+      await expect(imageFor(session.questions[index])).toHaveClass(/incorrect/);
+    }
+    await page.reload();
+    await page.locator('.matching-game').waitFor();
+    for (const index of [2, 0]) await expect(page.locator('.matching-game .notice')).toContainText(session.questions[index].correctAnswer);
+    await expect(page.locator('.word-steps .completed')).toHaveCount(2);
+    for (const index of [1, 3]) {
+      await press(page, wordFor(session.questions[index]));
+      await press(page, imageFor(session.questions[index]));
+    }
+    await press(page, page.locator('.game-controls > button'));
+    await expect(page.locator('.result-score strong')).toHaveText('2 / 4');
+    expect(Object.keys((await readMemory(page)).words)).toHaveLength(4);
+    await fits(page);
+  });
+
   test(`Image Match: any-order, wrong lock, 3+2 boards, persisted images, keyboard/touch (${locale})`, async ({ page }, testInfo) => {
     const session = await play(page, 'image-match', 'home', locale);
     expect(session.questions).toHaveLength(5);

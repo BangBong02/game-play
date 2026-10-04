@@ -19,7 +19,7 @@ npm run preview
 
 PowerShell dùng `npm.cmd` nếu `npm.ps1` bị execution policy chặn. Build gồm Astro/TypeScript check; `test:site` và `test:browser` chạy sau build. Playwright là dev dependency, không vào bundle website. Cài Chromium một lần; test tự mở static preview tại `127.0.0.1:4325` (hoặc tái sử dụng preview đang chạy). Chưa có lint script.
 
-Local QA ưu tiên automated tests / Playwright, rồi Codex built-in browser, sau đó Chrome Integration khi cần. Browser integration lỗi không chặn roadmap nếu có phương pháp QA tương đương. Browser tests kiểm tra EN/VI và sáu games trên desktop1280, tablet768, mobile390; thêm width360/430, keyboard/touch, reload/restart/result, memory/migration và media/storage failures. Optional Google Fonts stylesheet được thay bằng CSS rỗng trong tests để kiểm tra system-font fallback độc lập mạng; không bỏ qua console errors của app. Trace/screenshot lỗi và ảnh review nằm trong `test-results/` (gitignored).
+Local QA chạy unit/integration → build/typecheck → Playwright → Chrome Integration để QA trực quan → responsive desktop/tablet/mobile. Chrome profile Bang là phương pháp QA trực quan chính khi hoạt động; nếu disconnect, thử reconnect hợp lý rồi chuyển sang Playwright/Codex built-in browser hoặc cách an toàn tương đương và tiếp tục roadmap. Browser tests kiểm tra EN/VI và sáu games trên desktop1280, tablet768, mobile390; thêm width360/430, keyboard/touch, reload/restart/result, memory/migration và media/storage failures. Optional Google Fonts stylesheet được thay bằng CSS rỗng trong tests để kiểm tra system-font fallback độc lập mạng; không bỏ qua console errors của app. Trace/screenshot lỗi và ảnh review nằm trong `test-results/` (gitignored).
 
 ## Architecture
 

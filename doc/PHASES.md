@@ -114,4 +114,10 @@ D1, R2, Drizzle, Auth, account, API/backend, sync online và ngôn ngữ mới c
 
 Phạm vi mới đã được người dùng yêu cầu:50 từ demo có metadata, priority/topic, media US local; hoàn thiện Picture Pick, thêm Listen/Image rồi Image Match; learning memory3 ngày đúng với lịch1d/7d/60d, sai5h; topic mastery và cumulative300/1200/3000 (subset tự curate). Giữ4 game/SEO/Collections/localStorage. Feature commits và milestone pushes trên dev branch được cho phép. Supabase/auth/full3000 là backlog, không triển khai trong MVP.
 
-Roadmap chi tiết/acceptance ở `ROADMAP.md`, decisions ở `docs/PRODUCT_DECISIONS.md`, state ở `docs/PROJECT_STATE.md`; nhật ký thực tế vẫn ở `doc/PROGRESS.md`. Hoàn thành khi nội dung/media/game/memory/progress được validation tự động và browser desktop/tablet/mobile/keyboard/reload/restart/console, docs và dev Git milestones cập nhật. Theo yêu cầu ngày04/10, ưu tiên Playwright cho local QA; Codex built-in browser hoặc phương pháp an toàn tương đương thay được Chrome Integration. Integration disconnect không phải blocker nếu vẫn kiểm tra được feature.
+Roadmap chi tiết/acceptance ở `ROADMAP.md`, decisions ở `docs/PRODUCT_DECISIONS.md`, state ở `docs/PROJECT_STATE.md`; nhật ký thực tế vẫn ở `doc/PROGRESS.md`. Hoàn thành khi nội dung/media/game/memory/progress được validation tự động và browser desktop/tablet/mobile/keyboard/reload/restart/console, docs và dev Git milestones cập nhật. Theo yêu cầu mới nhất ngày04/10, sau automated tests/build/Playwright dùng Chrome Integration làm QA trực quan chính, rồi kiểm tra desktop/tablet/mobile. Nếu reconnect không được, dùng Playwright/Codex built-in browser hoặc phương pháp an toàn tương đương; integration disconnect không phải blocker nếu vẫn kiểm tra được feature.
+
+### M6 — Chrome visual audit và polish (IN PROGRESS)
+
+- Kiểm tra trực tiếp sáu games hiện có, filters/topic, audio/images, feedback, result, progress, keyboard/reload/restart và responsive bằng Chrome profile Bang.
+- Sửa lỗi nhỏ đã reproduce: Image Match phải hiển thị tất cả cặp cần xem lại, kể cả sau reload; không thêm state lưu trữ/dependency.
+- Acceptance: unit/HTML/build/Playwright pass; Chrome desktop/tablet/mobile và console được kiểm tra; docs/Git review và dev commit/push hoàn tất. Không mở rộng bulk content/backend.
