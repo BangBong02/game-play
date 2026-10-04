@@ -1,0 +1,17 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import LearningProgress from '../../components/LearningProgress';
+import { locales, messages, learningLanguage } from '../../i18n';
+import { wordRepository, topicRepository } from '../../repositories/content';
+export function getStaticPaths() { return locales.map(locale => ({ params: { locale }, props: { locale } })); }
+const { locale } = Astro.props;
+const t = messages[locale];
+const [words, topics] = await Promise.all([wordRepository.forGame({ game: 'word-to-meaning', startRank: 1 }), topicRepository.list(learningLanguage)]);
+---
+<BaseLayout title={t.learningProgress} description={t.progressIntro} locale={locale}>
+  <div class="page-container interior-page reading-width">
+    <header class="page-heading"><h1>{t.learningProgress}</h1><p>{t.progressIntro}</p></header>
+    <LearningProgress client:load words={words} topics={topics} locale={locale} />
+    <article class="prose"><h2>{t.howMemoryWorks}</h2><p>{t.memoryRule}</p><p>{t.curriculumNote}</p></article>
+  </div>
+</BaseLayout>

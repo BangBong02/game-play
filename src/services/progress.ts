@@ -1,4 +1,5 @@
 import { getStats, isValidGameState, isValidQuestion, type ChoiceQuestion, type GameMode, type Question, type VocabularySession } from '../game/vocabulary.ts';
+import { emptyMemory, type LearningMemory, type Practice, type WordMemory } from '../game/learning.ts';
 
 export interface ProgressKey {
   language: string;
@@ -7,6 +8,7 @@ export interface ProgressKey {
   startRank?: number;
   topic: string;
   mode?: GameMode;
+  practice?: Practice;
 }
 
 export interface SavedProgress extends ProgressKey {
@@ -26,7 +28,7 @@ export interface ProgressStore {
   save(progress: SavedProgress): boolean;
 }
 
-const storageKey = (key: ProgressKey) => key.game ? `lingoplay:v3:${key.language}:${key.game}:${key.topic}` : `lingoplay:v2:${key.language}:${key.level}:${key.topic}:${key.mode ?? 'recent'}`;
+const storageKey = (key: ProgressKey) => key.game ? `lingoplay:v3:${key.language}:${key.game}:${key.topic}${key.practice && key.practice !== 'study' ? `:${key.practice}` : ''}` : `lingoplay:v2:${key.language}:${key.level}:${key.topic}:${key.mode ?? 'recent'}`;
 const legacyKey = (key: ProgressKey) => `lingoplay:v1:${key.language}:${key.level}:${key.topic}`;
 
 export const progressStore: ProgressStore = {
@@ -69,7 +71,7 @@ export function createSavedProgress(session: VocabularySession, previous?: unkno
 export function readStoredSession(value: unknown, key: ProgressKey, mode: GameMode, bank: Question[], answerPool?: string[], imagePool?: ChoiceQuestion['optionImages']): VocabularySession | null {
   if (!value || typeof value !== 'object') return null;
   const saved = value as Record<string, unknown>;
-  if (saved.language !== key.language || saved.level !== key.level || saved.topic !== key.topic || saved.game !== key.game) return null;
+  if (saved.language !== key.language || saved.level !== key.level || saved.topic !== key.topic || saved.game !== key.game || (saved.practice ?? 'study') !== (key.practice ?? 'study')) return null;
   let candidate: unknown = saved.session;
   if (!candidate && !key.game && mode === 'word-to-meaning' && typeof saved.signature === 'string') {
     try {
@@ -85,23 +87,25 @@ export function readStoredSession(value: unknown, key: ProgressKey, mode: GameMo
   } else if (saved.version !== (key.game ? 3 : 2) || saved.mode !== mode) return null;
   if (!candidate || typeof candidate !== 'object') return null;
   const session = candidate as VocabularySession;
-  if (!session.config || session.config.language !== key.language || session.config.level !== key.level || session.config.topic !== key.topic || session.config.mode !== mode || session.config.game !== key.game ||
+  if (session.id !== undefined && (typeof session.id !== 'string' || !session.id.trim() || session.id.length > 100)) return null;
+  if (!session.config || session.config.language !== key.language || session.config.level !== key.level || session.config.topic !== key.topic || session.config.mode !== mode || session.config.game !== key.game || (session.config.practice ?? 'study') !== (key.practice ?? 'study') ||
     (key.game && (session.config.startRank !== key.startRank || !Number.isInteger(key.startRank) || key.startRank! < 1)) ||
     !Array.isArray(session.questions) || !session.questions.length || session.questions.length !== session.config.questionCount || new Set(session.questions.map(question => question?.id)).size !== session.questions.length) return null;
   const allowedAnswers = new Set(answerPool ?? bank.flatMap(question => question.kind === 'choice' ? question.options : []));
   const allowedImages = new Map((imagePool ?? bank.flatMap(question => question.kind === 'choice' ? question.optionImages ?? [] : [])).map(image => [image.answer, image]));
+  if (mode === 'image-match' && (!Array.isArray(session.imageOrder) || session.imageOrder.length !== session.questions.length || new Set(session.imageOrder).size !== session.questions.length || !session.imageOrder.every(id => session.questions.some(question => question.id === id)))) return null;
   const valid = session.questions.every(question => {
     if (!isValidQuestion(question)) return false;
     const current = bank.find(item => item.id === question.id);
     return current && current.kind === question.kind && current.prompt === question.prompt && current.correctAnswer === question.correctAnswer && current.promptLanguage === question.promptLanguage && current.answerLanguage === question.answerLanguage &&
-      (question.kind === 'typing' || (current.kind === 'choice' && JSON.stringify(current.image) === JSON.stringify(question.image) && current.audio === question.audio && !!current.optionImages === !!question.optionImages && question.options.every(option => allowedAnswers.has(option)) && (!question.optionImages || question.optionImages.every(image => JSON.stringify(allowedImages.get(image.answer)) === JSON.stringify(image)))));
+      (question.kind === 'typing' || (question.kind === 'matching' && current.kind === 'matching' && JSON.stringify(current.image) === JSON.stringify(question.image)) || (question.kind === 'choice' && current.kind === 'choice' && JSON.stringify(current.image) === JSON.stringify(question.image) && current.audio === question.audio && !!current.optionImages === !!question.optionImages && question.options.every(option => allowedAnswers.has(option)) && (!question.optionImages || question.optionImages.every(image => JSON.stringify(allowedImages.get(image.answer)) === JSON.stringify(image)))));
   });
   return valid && isValidGameState(session.state, session.questions) ? session : null;
 }
 
 // Copy a validated old topic round once. Existing v1/v2 keys remain untouched.
 export function migrateLevelProgress(key: ProgressKey, mode: GameMode, bank: Question[], answerPool: string[], ranks: Map<string, number>): VocabularySession | null {
-  if (!key.game || key.topic === 'all') return null;
+  if (!key.game || key.topic === 'all' || (key.practice && key.practice !== 'study')) return null;
   const candidates = ['easy', 'medium', 'hard'].map(level => {
     const oldKey = { language: key.language, level, topic: key.topic, mode };
     const value = progressStore.get(oldKey);
@@ -113,3 +117,30 @@ export function migrateLevelProgress(key: ProgressKey, mode: GameMode, bank: Que
   const startRank = Math.min(...old.questions.map(question => ranks.get(question.id) ?? 1));
   return { ...old, config: { language: key.language, topic: key.topic, game: key.game, startRank, mode, questionCount: old.questions.length } };
 }
+
+const memoryKey = 'lingoplay:learning:v1:en';
+export function readLearningMemory(value: unknown): LearningMemory {
+  if (!value || typeof value !== 'object' || !('version' in value) || value.version !== 1 || !('words' in value) || !value.words || typeof value.words !== 'object' || Array.isArray(value.words)) return emptyMemory();
+  const entries = Object.entries(value.words).filter(([id, record]) => {
+    if (!id.trim() || id.length > 100 || !record || typeof record !== 'object') return false;
+    const word = record as WordMemory;
+    const validTime = (time: number) => Number.isSafeInteger(time) && time >= 0 && time <= 8.64e15;
+    return Number.isInteger(word.successes) && word.successes >= 0 && word.successes <= 3 && typeof word.lastOutcome === 'boolean' && (word.lastOutcome || word.successes === 0) && typeof word.lastAttemptId === 'string' && !!word.lastAttemptId.trim() && word.lastAttemptId.length <= 200 && validTime(word.dueAt) && validTime(word.lastAttemptAt) &&
+      (word.lastCorrectDay === undefined ? word.successes === 0 : typeof word.lastCorrectDay === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(word.lastCorrectDay) && Number.isFinite(Date.parse(word.lastCorrectDay)) && new Date(word.lastCorrectDay).toISOString().slice(0, 10) === word.lastCorrectDay);
+  });
+  return { version: 1, words: Object.fromEntries(entries) };
+}
+export const learningStore = {
+  get(fallback = emptyMemory()): LearningMemory {
+    try {
+      const value = localStorage.getItem(memoryKey);
+      const stored = readLearningMemory(value ? JSON.parse(value) : null);
+      // Preserve unsaved attempts when reads work but writes fail (e.g. quota or read-only storage).
+      for (const [id, word] of Object.entries(fallback.words)) {
+        if (!Object.hasOwn(stored.words, id) || stored.words[id].lastAttemptAt < word.lastAttemptAt) stored.words[id] = word;
+      }
+      return stored;
+    } catch { return fallback; }
+  },
+  save(memory: LearningMemory): boolean { try { localStorage.setItem(memoryKey, JSON.stringify(memory)); return true; } catch { return false; } },
+};

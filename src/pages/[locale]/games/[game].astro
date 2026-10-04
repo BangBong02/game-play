@@ -7,16 +7,16 @@ import { wordRepository, topicRepository } from '../../../repositories/content';
 export function getStaticPaths() { return locales.flatMap(locale => getGames().map(game => ({ params: { locale, game: game.slug }, props: { locale, game } }))); }
 const { locale, game } = Astro.props;
 const t = messages[locale];
-const dataset = await wordRepository.forGame({ game: game.id, startRank: 1 });
-const topics = await topicRepository.list(learningLanguage);
+const [dataset, allWords, topics] = await Promise.all([wordRepository.forGame({ game: game.id, startRank: 1 }), wordRepository.forGame({ game: 'word-to-meaning', startRank: 1 }), topicRepository.list(learningLanguage)]);
+const progressWords = allWords.map(({ id, topics, curriculum }) => ({ id, topics, curriculum }));
 const availableTopics = topics.filter(topic => dataset.some(word => word.topics.includes(topic.id)));
 ---
 <BaseLayout title={game.title[locale]} description={game.description[locale]} locale={locale}>
   <div class="page-container game-page">
     <header class="topic-header reading-width"><h1>{game.title[locale]}</h1><p>{game.description[locale]}</p></header>
-    <div class="reading-width"><GameSession client:load locale={locale} game={game} words={dataset} topics={availableTopics} /></div>
-    <article class="prose reading-width vocabulary-content"><h2>{t.wordList}</h2><p>{t.wordListIntro}</p>
-      <table class="word-table"><thead><tr><th scope="col">English</th><th scope="col">{t.meaning}</th></tr></thead><tbody>{dataset.map(word => <tr><th scope="row" lang="en">{word.word}</th><td lang="vi">{word.meaning}</td></tr>)}</tbody></table>
+    <div class="reading-width"><GameSession client:load locale={locale} game={game} words={dataset} topics={availableTopics} progressWords={progressWords} /></div>
+    <article class="prose reading-width vocabulary-content"><h2>{t.wordList}</h2><p>{t.wordListIntro}</p><p>{t.extraWordsNote}</p>
+      <table class="word-table"><thead><tr><th scope="col">English</th><th scope="col">{t.meaning}</th></tr></thead><tbody>{dataset.map(word => <tr><th scope="row" lang="en">{word.word}{word.curriculum === 'supplemental' && <small> (extra)</small>}</th><td lang="vi">{word.meaning}</td></tr>)}</tbody></table>
     </article>
   </div>
 </BaseLayout>

@@ -7,6 +7,7 @@ export const levels = [
 
 export type LevelId = typeof levels[number]['id'];
 export type Progression = 'cumulative' | 'new-only';
+export const vocabularyTargets = levels.map(level => level.targetWordCount);
 
 export function wordBelongsToLevel(wordLevel: LevelId, level: LevelId, progression: Progression = 'cumulative'): boolean {
   if (progression === 'new-only') return wordLevel === level;

@@ -21,6 +21,8 @@ States distinguish unseen/learning/correct/due/mastered; topic completion requir
 ## Risks
 Local progress stays on this device. This is a product heuristic, not a replacement for a scientifically calibrated memory model. Course targets do not imply all3000 words are shipped.
 ## Progress
-- Planned; stable content/games dependencies pending.
+- Implementation and equivalent browser QA complete. Pure scheduler, defensive versioned memory, separate practice round keys, global counts/progress and static vocabulary pages added. Unit52/52 includes11 targeted memory tests; HTML7/7 and build154 pages/0 diagnostics pass. Playwright72-case matrix plus3 default matching checks pass; feature Git milestone pending.
 ## Decisions
 Owner accepted three separate-day successes and exact schedule. Supabase/auth/sync postponed.
+
+Review correction:topic mastery uses the complete core topic, independent of game media capability. School3 pictured /4 total has unit and browser regressions. Counter refresh listeners/timers have cleanup. Browser clock exercised three due-day successes, early repeats, wrong5h, mastery reset, global IDs and review selection. Legacy rounds/EN–VI switch preserved without invented mastery. Blocked/read-only/partial storage retains unsaved in-page memory; warning stays until a successful memory save. Chrome failure is not a blocker when equivalent QA succeeds.

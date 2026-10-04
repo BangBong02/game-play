@@ -15,7 +15,7 @@ test('both homepages render localized UI, ordered playable games and no level st
     assert.ok(page.includes(`<html lang="${locale}">`));
     assert.ok(page.includes(`<h1>${messages[locale].hero}</h1>`));
     assert.ok(page.includes(`>${messages[locale].learn}</a>`));
-    assert.equal((page.match(/class="home-game-card /g) ?? []).length, 5);
+    assert.equal((page.match(/class="home-game-card /g) ?? []).length, 6);
     const links = [...page.matchAll(/href="([^\"]+)" data-skills=/g)].map(match => match[1]);
     assert.deepEqual(links, getGames().map(game => `/${locale}/games/${game.slug}`));
     assert.doesNotMatch(page, /astro-island|href="\/(en|vi)\/(easy|medium|hard)/);
@@ -32,7 +32,33 @@ test('rendered filters default to All and expose only skills with real games', (
     assert.match(page, /data-skills="vocabulary spelling"/);
     assert.match(page, /data-filter="listening"/);
     assert.match(page, /data-filter="imageBased"/);
+    assert.match(page, /data-filter="matching"/);
     assert.doesNotMatch(page, /data-filter="grammar"/);
+  }
+});
+
+test('learning progress is one island with real explanatory Astro content and honest demo scope', () => {
+  for (const locale of locales) {
+    const page = html(`${locale}/progress`);
+    assert.equal((page.match(/<astro-island /g) ?? []).length, 1);
+    assert.ok(page.includes(messages[locale].learningProgress));
+    assert.ok(page.includes(messages[locale].memoryRule));
+    assert.ok(page.includes(messages[locale].curriculumNote));
+    assert.ok(html(locale).includes(`href="/${locale}/progress"`));
+  }
+});
+
+test('vocabulary topics ship meanings, authored examples and opt-in audio as static HTML', () => {
+  for (const locale of locales) {
+    const page = html(`${locale}/learn/vocabulary/home`);
+    assert.doesNotMatch(page, /astro-island|autoplay/);
+    assert.match(page, /lang="en">house/);
+    assert.ok(page.includes('Our house has a small garden.'));
+    assert.ok(page.includes('Ngôi nhà'));
+    assert.match(page, /<audio controls preload="none" src="\/media\/audio\/vocabulary\/house-us.mp3"/);
+    assert.ok(html(`${locale}/learn`).includes(`href="/${locale}/learn/vocabulary/home"`));
+    const animals = html(`${locale}/learn/vocabulary/animals`);
+    assert.doesNotMatch(animals, /<strong lang="en">(?:duck|rabbit)</);
   }
 });
 
@@ -44,7 +70,7 @@ test('localized game routes share real English vocabulary HTML and one React gam
       const page = pages[index]; const locale = locales[index];
       assert.ok(page.includes(`<h1>${game.title[locale].replaceAll('&', '&amp;')}</h1>`));
       assert.equal((page.match(/<astro-island /g) ?? []).length, 1);
-      assert.equal((page.match(/<th scope="row" lang="en">/g) ?? []).length, ['image-to-word', 'listen-to-image'].includes(game.id) ? 30 : 52);
+      assert.equal((page.match(/<th scope="row" lang="en">/g) ?? []).length, ['image-to-word', 'listen-to-image', 'image-match'].includes(game.id) ? 30 : 52);
       assert.ok(page.includes(`/${locale}/games/${game.slug}`));
       assert.match(page, /<meta name="description"/);
       // Local builds can omit SITE_URL; production builds must use the configured site.

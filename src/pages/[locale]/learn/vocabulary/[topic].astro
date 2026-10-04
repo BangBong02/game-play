@@ -1,0 +1,22 @@
+---
+import BaseLayout from '../../../../layouts/BaseLayout.astro';
+import { locales, messages, topicLabel, learningLanguage } from '../../../../i18n';
+import { wordRepository, topicRepository } from '../../../../repositories/content';
+export async function getStaticPaths() {
+  const [allWords, topics] = await Promise.all([wordRepository.forGame({ game: 'word-to-meaning', startRank: 1 }), topicRepository.list(learningLanguage)]);
+  return locales.flatMap(locale => topics.flatMap(topic => {
+    const words = allWords.filter(word => word.curriculum === 'oxford-3000' && word.topics.includes(topic.id));
+    return words.length ? [{ params: { locale, topic: topic.id }, props: { locale, topic, words } }] : [];
+  }));
+}
+const { locale, topic, words } = Astro.props;
+const t = messages[locale];
+---
+<BaseLayout title={`${topicLabel(locale, topic.id)} · ${t.wordList}`} description={t.wordListIntro} locale={locale}>
+  <div class="page-container interior-page reading-width">
+    <header class="page-heading"><h1>{topicLabel(locale, topic.id)} · {t.wordList}</h1><p>{words.length} {t.availableDemo}</p><a class="primary-button" href={`/${locale}/games/word-match?topic=${topic.id}`}>{t.play} →</a></header>
+    <article class="prose"><p>{t.curriculumNote}</p><dl class="vocabulary-entries">{words.map(word => <div>
+      <dt><strong lang="en">{word.word}</strong> <small lang="en">{word.partOfSpeech}</small></dt><dd>{word.imageUrl && <img src={word.imageUrl} alt={word.imageAlt} width="120" height="90" loading="lazy" />}<p lang="vi">{word.meaning}</p><p lang="en">{word.example}</p>{word.audioUrl && <audio controls preload="none" src={word.audioUrl} aria-label={`${t.listen}: ${word.word}`} />}</dd>
+    </div>)}</dl></article>
+  </div>
+</BaseLayout>

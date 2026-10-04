@@ -8,7 +8,7 @@ import { topics, words as dataset } from '../src/data/content.ts';
 import { filterWords, getWordsForProgress, wordRepository } from '../src/repositories/content.ts';
 import { isMediaUrl, isWordEligible, type WordActivity } from '../src/game/eligibility.ts';
 import { getWordsForGame } from '../src/repositories/queries.ts';
-import { advanceGame, createSession, gameModes, generateDistractors, generateQuestions, getScore, getStats, isCorrectAnswer, isValidGameState, isValidQuestion, normalizeAnswer, type ChoiceQuestion, type GameState, type SessionConfig } from '../src/game/vocabulary.ts';
+import { advanceGame, matchBoardEnd, createSession, gameModes, generateDistractors, generateQuestions, getScore, getStats, isCorrectAnswer, isValidGameState, isValidQuestion, normalizeAnswer, type ChoiceQuestion, type GameState, type SessionConfig } from '../src/game/vocabulary.ts';
 import { createSavedProgress, migrateLevelProgress, progressStore, readStoredSession } from '../src/services/progress.ts';
 import type { Word } from '../src/types/content.ts';
 
@@ -25,6 +25,17 @@ function storage() {
 
 function finish(session: NonNullable<ReturnType<typeof createSession>>) {
   let state = session.state;
+  if (session.config.mode === 'image-match') {
+    while (state.index < session.questions.length) {
+      const board = session.questions.slice(state.index, matchBoardEnd(state.index, session.questions.length));
+      for (const question of [...board].reverse()) {
+        const answer = question.id === session.questions[0].id ? board.find(item => item.id !== question.id)!.correctAnswer : question.correctAnswer;
+        state = advanceGame(state, { type: 'match', id: question.id, answer }, session.questions);
+      }
+      state = advanceGame(state, { type: 'next' }, session.questions);
+    }
+    return { ...session, state };
+  }
   session.questions.forEach((question, index) => {
     const answer = index === 0 ? question.kind === 'choice' ? question.options.find(option => option !== question.correctAnswer)! : 'wrong word' : question.correctAnswer;
     state = advanceGame(state, { type: 'answer', answer }, session.questions);
@@ -180,7 +191,8 @@ test('all four modes use filtered targets and distractors across levels, includi
       const targets = filterWords(dataset, 'en', level.id, topic.id);
       for (const mode of gameModes) {
         const bank = generateQuestions(targets, mode.id, pool, random);
-        const eligible = targets.filter(word => isWordEligible(word, mode.id));
+        let eligible = targets.filter(word => isWordEligible(word, mode.id));
+        if (mode.id === 'image-match' && eligible.length < 2) eligible = [];
         assert.equal(bank.length, eligible.length);
         for (const question of bank) {
           assert.ok(targets.some(word => word.id === question.id));
@@ -221,7 +233,7 @@ test('saved rounds reject words moved outside their level without deleting store
 });
 
 test('all choice modes contain four unique answers with exactly one correct answer', () => {
-  for (const mode of gameModes.filter(mode => mode.id !== 'type-the-word')) {
+  for (const mode of gameModes.filter(mode => mode.id !== 'type-the-word' && mode.id !== 'image-match')) {
     const generated = generateQuestions(words, mode.id, words, random);
     assert.equal(generated.length, words.length);
     for (const question of generated) {
@@ -364,7 +376,7 @@ test('small banks cap at available words, require choice distractors and allow o
   for (const mode of gameModes) {
     const selected = getWordsForGame(words.slice(0, 3), { game: mode.id, startRank: 1, count: 10 });
     const bank = generateQuestions(selected, mode.id, selected, random);
-    assert.equal(createSession({ ...config, mode: mode.id, questionCount: 10 }, bank)?.questions.length ?? 0, mode.id === 'type-the-word' ? 3 : 0);
+    assert.equal(createSession({ ...config, mode: mode.id, questionCount: 10 }, bank)?.questions.length ?? 0, mode.id === 'type-the-word' || mode.id === 'image-match' ? 3 : 0);
     const withFallback = generateQuestions(selected, mode.id, words, random);
     assert.equal(createSession({ ...config, mode: mode.id, questionCount: 10 }, withFallback)!.questions.length, 3);
     assert.equal(createSession({ ...config, mode: mode.id }, generateQuestions([], mode.id, words)), null);
@@ -491,10 +503,10 @@ test('blocked storage never prevents playing or scoring', () => {
 
 test('game registry orders real games and supports a game in multiple skill filters', () => {
   const reversed = [...games].reverse();
-  assert.deepEqual(getGames('all', reversed).map(game => game.slug), ['word-match', 'find-the-word', 'picture-pick', 'spell-the-word', 'listen-and-pick']);
-  assert.equal(getGames('vocabulary').length, 5);
+  assert.deepEqual(getGames('all', reversed).map(game => game.slug), ['picture-pick', 'listen-and-pick', 'image-match', 'word-match', 'find-the-word', 'spell-the-word']);
+  assert.equal(getGames('vocabulary').length, 6);
   assert.deepEqual(getGames('spelling').map(game => game.slug), ['spell-the-word']);
-  assert.deepEqual(gameSkills, ['vocabulary', 'imageBased', 'spelling', 'listening']);
+  assert.deepEqual(gameSkills, ['vocabulary', 'imageBased', 'listening', 'matching', 'spelling']);
   assert.equal(getGames('all', [{ ...games[0], status: 'coming-soon' }]).length, 0);
   assert.deepEqual(reversed, [...games].reverse());
 });
@@ -504,7 +516,7 @@ test('locale changes UI and keeps the same English game identity, topic and targ
   assert.equal(messages.en.hero, 'Learn English through games.'); assert.equal(messages.vi.hero, 'Học tiếng Anh qua game.');
   assert.equal(learningLanguage, 'en');
   for (const locale of locales) {
-    assert.deepEqual(getGames().map(game => game.id), gameModes.map(mode => mode.id));
+    assert.deepEqual(getGames().map(game => game.id).sort(), gameModes.map(mode => mode.id).sort());
     assert.ok(getGames().every(game => game.title[locale] && game.description[locale]));
     assert.equal(localePath(locale, '/en/games/word-match?topic=animals#main'), `/${locale}/games/word-match?topic=animals#main`);
     assert.ok(getWordsForProgress(dataset, { startRank: 1, count: 10 }).every(word => word.language === learningLanguage));
@@ -607,4 +619,31 @@ test('listening questions use real image/audio choices, hide target text and rej
   const bad = structuredClone(saved);
   (bad.session.questions[0] as ChoiceQuestion).optionImages![0].url = '/media/changed.webp';
   assert.equal(readStoredSession(bad, session.config, session.config.mode, bank, dataset.map(word => word.word), imagePool), null);
+});
+
+test('matching supports any-order pairs, locks attempts and preserves exact boards/images on reload', () => {
+  const bank = generateQuestions(words, 'image-match', words, random);
+  const current = { language: 'en', game: 'image-match', topic: 'all', startRank: 1, mode: 'image-match' as const, questionCount: 5 };
+  const session = createSession(current, bank, random)!;
+  assert.equal(matchBoardEnd(0, 5), 3);
+  assert.equal(matchBoardEnd(3, 5), 5);
+  assert.equal(advanceGame(session.state, { type: 'next' }, session.questions), session.state);
+  const lastInBoard = session.questions[2];
+  const state = advanceGame(session.state, { type: 'match', id: lastInBoard.id, answer: lastInBoard.correctAnswer }, session.questions);
+  assert.equal(state.answers[2], lastInBoard.correctAnswer);
+  assert.equal(getStats({ ...session, state }).completed, 1);
+  assert.equal(getStats({ ...session, state }).correct, 1);
+  assert.equal(isValidGameState(state, session.questions), true);
+  assert.equal(advanceGame(state, { type: 'match', id: lastInBoard.id, answer: session.questions[0].correctAnswer }, session.questions), state);
+  assert.equal(advanceGame(state, { type: 'match', id: session.questions[4].id, answer: session.questions[4].correctAnswer }, session.questions), state);
+  assert.equal(advanceGame(state, { type: 'match', id: session.questions[0].id, answer: 'unknown' }, session.questions), state);
+  assert.equal(isValidGameState({ ...state, index: 1 }, session.questions), false);
+  assert.equal(isValidGameState({ ...state, index: 3 }, session.questions), false);
+  const saved = createSavedProgress({ ...session, state });
+  assert.deepEqual(readStoredSession(saved, current, current.mode, bank), { ...session, state });
+  const corrupt = structuredClone(saved);
+  corrupt.session.imageOrder = [session.questions[0].id];
+  assert.equal(readStoredSession(corrupt, current, current.mode, bank), null);
+  assert.deepEqual(generateQuestions(words.slice(0,1), 'image-match'), []);
+  assert.equal(createSession({ ...current, questionCount: 1 }, bank), null);
 });

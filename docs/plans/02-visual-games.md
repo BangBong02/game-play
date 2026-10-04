@@ -24,3 +24,7 @@ Do not expose the spoken target as visible text before listening answer. Describ
 - M2 DONE:normalized audio/image-choice questions, native opt-in/replay with caught failures/reload retry, skills Listening/Pictures. Unit40/40, HTML5/5, build124pages, Chrome desktop/tablet768/mobile390CSS, wrong/right/reload/result3of4/restart and actual playback. Controlled missing asset recovered after restore. M3 matching IN PROGRESS.
 ## Decisions
 Owner approved Picture Pick → Listen/Image → Image Match. Native click/tap/keyboard matching, no PixiJS.
+
+M3 implementation complete:matching questions and2–4-pair boards (5 splits3+2); any-order attempts, stable imageOrder on save/reload, keyboard focus and wrong-pair correction. Unit41/41 passed before memory integration; final combined51/51 and HTML7/7/build154 passed. Chrome disconnected before M3 interaction testing:browser QA pending, feature not DONE or committed.
+
+Final M3 QA:Playwright72-case desktop/tablet/mobile matrix plus3 default10-pair checks passed; EN/VI5-pair3+2 and10-pair4+4+2 rounds, any-order wrong/right, answer locks, saved image order, reload/results/restart, Tab/Enter/touch, completed-pair progress and global memory. Focus now moves to result heading on completion. Screenshots reviewed; no overflow at360/390/430/768/1280. Shared media failure/retry/fallback verified. Unit52/52, HTML7/7, build154/0 diagnostics. Chrome Integration is optional; former blocker removed. Feature Git milestone pending.

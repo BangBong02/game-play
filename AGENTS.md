@@ -51,7 +51,7 @@ Không xây dựng functionality chỉ vì “sau này có thể cần”.
 - hệ thống plugin;
 - kiến trúc đa ngôn ngữ phức tạp.
 
-Phiên bản đầu tiên tập trung vào **English typing course**.
+Phiên bản đầu tiên tập trung vào **English vocabulary learning MVP**.
 
 Tiếng Việt có thể được bổ sung sau nhưng không xây architecture phức tạp cho Vietnamese ngay từ đầu.
 
@@ -140,7 +140,7 @@ Chỉ abstraction khi pattern lặp lại thực sự xuất hiện.
 
 Duplication nhỏ và dễ hiểu đôi khi tốt hơn abstraction quá sớm.
 
-Tuy nhiên, những phần có domain rõ ràng như keyboard layout, finger mapping hoặc lesson data có thể tách riêng khi điều đó thực sự giúp code dễ hiểu và tái sử dụng.
+Tuy nhiên, những phần có domain rõ ràng như vocabulary, media eligibility, learning memory hoặc lesson data có thể tách riêng khi điều đó thực sự giúp code dễ hiểu và tái sử dụng.
 
 ## 8. State
 
@@ -269,32 +269,36 @@ Trước khi hoàn thành task, tối thiểu kiểm tra nếu project hỗ tr�
 - build;
 - behavior vừa thay đổi.
 
-Với typing interaction, phải kiểm tra thực tế:
+Với game interaction, phải kiểm tra thực tế:
 
-- gõ đúng;
-- gõ sai;
+- trả lời/gõ/ghép đúng;
+- trả lời/gõ/ghép sai;
 - Backspace nếu feature cho phép;
-- chuyển ký tự;
-- hoàn thành drill;
-- keyboard highlight;
-- finger highlight;
+- chuyển câu/bảng matching;
+- hoàn thành round;
+- keyboard focus và touch targets;
+- hình/audio, replay và media failure;
 - restart/reload khi relevant.
 
 Không tạo hệ thống test lớn cho logic rất nhỏ nếu project chưa cần.
 
-Nhưng logic quan trọng như scoring, WPM, accuracy hoặc lesson progression cần có cách kiểm tra đáng tin cậy khi được triển khai.
+Nhưng logic quan trọng như scoring, accuracy, matching state hoặc learning progression/SRS cần có cách kiểm tra đáng tin cậy khi được triển khai.
 
 ## 16. Test như người dùng thật
+
+Browser integration failure must not block the roadmap when equivalent QA can be performed with Playwright, the Codex built-in browser, or another safe local validation method.
+
+Với localhost/local development, ưu tiên automated tests / Playwright, sau đó Codex built-in browser, rồi Chrome Integration khi thực sự cần. Nếu Chrome disconnect, tự chuyển sang phương pháp QA tương đương; chỉ báo BLOCKED khi không còn cách hợp lý để kiểm tra feature. Ghi rõ phương pháp và kết quả thực tế.
 
 Sau khi implementation xong, nếu môi trường cho phép:
 
 1. mở app;
 2. đi qua flow thực tế;
 3. click navigation;
-4. bắt đầu lesson;
-5. gõ bằng bàn phím;
+4. bắt đầu game;
+5. chọn/ghép/gõ bằng keyboard và touch;
 6. kiểm tra correct/incorrect state;
-7. hoàn thành drill;
+7. hoàn thành round/result;
 8. kiểm tra responsive relevant;
 9. reload;
 10. kiểm tra console error.
@@ -358,7 +362,7 @@ Tự kiểm tra:
 - Có duplicate state không?
 - Có file thừa không?
 - Typing interaction có phản hồi tốt không?
-- Keyboard và finger mapping có đúng không?
+- Matching, media eligibility và learning scheduling có đúng không?
 - Accessibility cơ bản còn hoạt động không?
 - Build có thành công không?
 - Có console error không?

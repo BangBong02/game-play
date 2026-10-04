@@ -1,6 +1,6 @@
 # Tiến trình Lingoplay
 
-Cập nhật gần nhất: **2026-10-03** (Asia/Bangkok).
+Cập nhật gần nhất: **2026-10-04** (Asia/Bangkok).
 
 ## Trạng thái hiện tại
 
@@ -8,11 +8,12 @@ Cập nhật gần nhất: **2026-10-03** (Asia/Bangkok).
 | --- | --- | --- |
 | 0 — Base và game demo | Hoàn thành | Astro/React/TypeScript, routing theo data, Multiple Choice, localStorage |
 | 1 — Astro content và SEO | Hoàn thành | HTML vocabulary, Content Collections local, bài viết Astro, game island |
-| 2 — UX và nội dung local | Đang thực hiện | UI/UX và Vocabulary Data Model v2; chưa nhập Easy 300, cần xác nhận nguồn/curriculum |
+| 2 — UX và nội dung local | Content mở rộng ở BACKLOG | UI/UX và Data Model v2 đã có; Oxford3000/subsets đã xác nhận, demo50 từ đối chiếu; chưa nhập đủ300 |
 | 3 — Vocabulary Game Engine v1 | Hoàn thành | 4 mode, session/scoring chung, SVG local, progress v2 và migration v1; tests/build/browser pass |
 | 4 — Phát hành static | Hoàn thành | Worker game-play-vn trong account maotuankiet77; GitHub main tự test/build/deploy, SEO/404 và game public pass |
 | 5 — Game-first và UI locale | Hoàn thành | 4 game riêng, filter skill, EN/VI cùng English data, rank progression và progress v3; tests/build/Chrome pass |
 | 6 — Media-ready content | Hoàn thành | Optional media, query capability trước window, repository boundary; 37 unit + 5 HTML tests/build/Chrome pass |
+| 7 — Oxford-aligned local MVP | Validation hoàn tất, Git milestone đang chốt | Image Match, memory/progress,50 core words;52 unit +7 HTML +72 matrix browser checks và3 checks lượt10 cặp pass |
 
 Phạm vi/tiêu chí từng phase: [PHASES.md](PHASES.md).
 
@@ -312,26 +313,58 @@ Sau mỗi task:
 
 Việc tiếp theo hiện tại: người dùng review và tự commit; xác nhận nguồn/licence, curriculum và thứ tự học cho Easy 300 trước khi nhập nội dung Phase 2.
 
-## 2026-10-03 — Phase7: audit và product decisions
+## 2026-10-03 — Phase 7: audit và quyết định sản phẩm
 
-Đã đọc attachment/autonomous scope, audit source/config/tests/data/history/docs; baseline unit37/37, HTML5/5, production SITE_URL build74 pages pass. Chrome local homepage và Picture Pick restore giữ round cũ. Tạo dev branch `codex/oxford-learning-mvp`; commit media-ready feature đã hoàn thành: `2e58436`. Chưa push milestone mới.
+Đã đọc yêu cầu autonomous, audit source/config/tests/data/history/docs. Baseline unit37/37, HTML5/5, production SITE_URL build74 trang pass. Chrome local homepage và Picture Pick restore giữ round cũ. Tạo dev branch `codex/oxford-learning-mvp`; commit media-ready feature `2e58436`.
 
-User xác nhận300/1200 subset trongOxford3000, giao curate priority;3 ngày đúng/lịch1d7d60d/sai5h;PicturePick→ListenImage→ImageMatch; giao engineer chọn accent. Chọn US local demo, không suy đoán website tham khảo dùng accent nào. NativeSAPI cóDavid/Zira US, ffmpeg vàsharp có sẵn; không thêm package/dịch vụ trả phí. Đã mở FastEnglish reference qua Chrome; hướng dẫn listen→click và Slow tự paced phù hợp MVP, không thấy tuyên bố accent chính thức.
+User xác nhận300/1200 là subsets trong Oxford3000, giao curate priority;3 ngày đúng, lịch1d/7d/60d, sai5h; Picture Pick → Listen/Image → Image Match. Giao engineer chọn accent:chọn US offline demo. Chrome Fast English có hướng dẫn listen→click/Slow tự paced, không thấy tuyên bố accent chính thức. Không khẳng định US là phổ biến nhất. Máy có SAPI Zira/David US, ffmpeg và sharp; không thêm package/service trả phí.
 
-Tạo requested decisions/roadmap/plans/project state, cập nhậtAGENTS từ typing scaffold sangLingoplay boundaries/workflow. M1 content đang thực hiện, các feature mới chưa validation/commit.
+Tạo decisions/roadmap/plans/project state và cập nhật AGENTS theo Lingoplay. Full3000, Supabase và sync/auth là backlog.
 
-## 2026-10-03 — Phase7 M1: demo content/Picture Pick
+## 2026-10-03 — M1 DONE: demo content và Picture Pick
 
-DONE:50 từ đối chiếuOxford3000 có nghĩa/POS/example tự viết;52 canonical IDs bao gồmduck/rabbit supplemental giữtương thích, không tínhmốcOxford. Ranks1–52 doLingoplay curate, không gắnfrequencyRank. Topic priority ưu tiênFood/Family/Home/School.52 audioUS localZira, tổng480373 bytes;30 hình (20 SVG giữURL +10 WebP original primitives/sharp). Scripts regenerate offline vàprovenance trongpublic/media/ATTRIBUTION.md. Khôngdependency/backend/costs.
+- 50 từ đối chiếu Oxford3000, nghĩa/POS/example tự viết; thêm2 supplemental compatibility words (`duck`, `rabbit`) giữ ID cũ, không tính target Oxford. Ranks1–52 do Lingoplay curate, không gắn frequencyRank. Topic priority ưu tiên Food/Family/Home/School.
+- 52 MP3 US Zira offline, tổng480373 bytes;30 images (20 SVG giữ URL +10 WebP original/sharp). Regeneration scripts và provenance có trong repo. Không backend/dependency mới/costs.
+- Fix restore dùng full eligible topic bank để reorder/rank changes không discard round cũ.
+- Unit39/39, HTML5/5, SITE_URL build122 static pages/0 diagnostics, diff--check pass.
+- Chrome desktop/tablet768/mobile390CSS:old answered Picture Pick round giữ prompt/options/feedback; Home5 từ WebP naturalWidth480; keyboard wrong/right/Next; reload giữ đáp án sai; result4/5/80%, restart; no overflow; console[]warn/error; viewport reset.
+- Commits `5491253` (docs), `430d644` (content) và nền `2e58436` đã push dev branch. Main/production không đổi.
 
-Fixrestore dùngfull eligible topic bank đểreorder/rankchanges khôngdiscardroundcũ. Unit39/39, HTML5/5, SITE_URL build122 staticpages/0diagnostics pass; diff--check pass. Chrome thấyold answered PicturePick round giữprompt/options/feedback;Home5 từWebP (naturalWidth480), keyboardwrong/right vàNext, reloadđápánsai, result4/5/80%, restart. Desktop/tablet768/mobile390CSS (bùzoom110%) image/answersfit, scrollWidth=clientWidth, mobiletapcorrect;console[]warn/error;viewportreset.
+## 2026-10-03 — M2 DONE: Listen→Image
 
-M1code/docs đãreview; chuẩn bịcommit/push devmilestone. TiếpM2Listen→Image;learningmemory/chungprogress chưaimplement.
+Game Listen&Pick dùng audio+visual eligibility,4 picture choices, không lộ target text trước answer. Normalized media; explicit Listen/replay, no autoplay, stop khi đổi câu/unmount; Promise failures có localized retry. Restore xác minh URL/alt/audio và giữ option order. Homepage có Listening/Pictures filters thật;4 mode cũ giữ nguyên.
 
-## 2026-10-03 — Phase7 M2: Listen→Image
+Unit40/40, HTML5/5, SITE_URL build124 pages/0 diagnostics pass. Chrome desktop:initial paused/currentTime0; user Enter play pausedfalse/duration1.52s; ended/replay; wrongblue→correctgreen feedback; reload exact images/answers; next audio paused/time0. Tablet768/mobile390CSS fit/no overflow; Colors result3/4/75%, restart no autoplay. Normal-flow console sạch. Controlled missing-bus-clip:test có localized error, restore file→replay clears error, pausedfalse/duration1.50; expected network404 chỉ trong failure fixture. Assets restored, không giữ fixture.
 
-M1commits5491253/docs và430d644/content đãpush origin/codex/oxford-learning-mvp. M2DONE:gameListen&Pick eligibilityaudio+visual,4 imagechoices (khônglộtargettexttrướcanswer), normalizedmedia, explicitListen/replay, noautoplay, stop khiđổicâu/unmount;promise failures vàlocalizedretry. Restore xácminhsourceURL/alt/audio và giữoptionsorder. Homepage cóListening/Pictures filters thực.4 modecũgiữnguyên.
+Commit `aca4df1` đã push dev branch.
 
-Unit40/40, builtHTML5/5, SITE_URL build124pages/0diagnostics pass. ChromeDesktop:audioinitialpaused/currentTime0, userEnterplay pausedfalse/duration1.52s, end/replay, wrongblue→correctgreen feedback;reload exactimages/answers, nextaudio pausedtime0. Tablet768/mobile390CSS fit/nooverflow;completeColors3/4/75%, restartnoautoplay. Normalflowsconsole[]warn/error. Controlledmissingbuscliptest:localizedfailure(noUnhandledPromise), restorefile→replayclearsfeedback/audioerror=null, pausedfalse/duration1.50;expectednetwork404duringfixtureonly. Assetsrestored, nofixture retained.
+## 2026-10-04 — M3/M4 đang QA: matching và learning memory
 
-TiếpM3ImageMatch;memory/progress chưaimplement. M2chuẩnbịfeaturecommit/devpush saufinalreview.
+M3 implemented:matching questions, boards2–4 pairs (5 thành3+2), chọn từ bất kỳ rồi hình, lock attempts, highlight đúng cặp sau sai, shared scoring/result/restart, imageOrder persist exact. Unit matching/state/storage regressions pass. Chrome mất kết nối ngay trước kiểm tra M3; async request reconnect đã gửi, inventory vẫn rỗng. Chưa đánh dấu DONE hoặc commit M3.
+
+M4 implemented:
+
+- Pure scheduler/global canonical memory v1, due-first rồi unseen priority; eligibility vẫn lọc trước selection.3 correct scheduled attempts ở các UTC days khác nhau;1d/7d/60d, sai5h. Early repeats không farm mastery/postpone lịch đang chờ. Same-day due correction sau sai giữ0 credit và hẹn1d để tránh loop.
+- Study/review/free round keys riêng; stable session attempt IDs và answer locking; legacy v1/v2/v3 vẫn đọc được, completed/seen IDs cũ không thành mastery. Storage blocked/corrupt được xử lý defensively.
+- Progress island theo từ core, unique global IDs, topic mastered/available và completion thật;50 available so với target300, không giả có đủ300/1200/3000. Native static vocabulary topic pages có nghĩa/POS/example/audio opt-in; không SPA.
+- Media URL failure có image description fallback; audio failure/retry giữ native flow.
+
+Validation đã chạy:unit51/51, HTML7/7, SITE_URL build154 static pages/0 errors/warnings/hints pass. Không lint script. M3/M4 interaction/responsive/keyboard/reload/restart/console vẫn pending Chrome; chưa commit/push phần chưa QA. Việc tiếp theo:review diff/assets/import graph, reconnect Chrome rồi hoàn tất checklist6 games/memory/profile/vocabulary trên desktop/tablet/mobile, sửa findings, commit và push dev milestones.
+
+### Independent review cuối M3/M4 — 2026-10-04
+
+- Regression test School:mastery3 pictured words không complete topic4 từ. Astro truyền toàn bộ core IDs/topics cho counter, riêng eligibility pool cho game; không nhập mock trực tiếp vào React. Homepage ưu tiên Picture Pick → Listen/Image → Image Match.
+- Unit51/51 (10 tests memory), HTML7/7, final SITE_URL build154 pages/0 diagnostics pass. Tất cả52 MP3 decode được. Static preview:153 index routes +82 media URLs HTTP200, unknown URL404. Diff--check pass; không runtime debug log hoặc package mới.
+- Chrome inventory vẫn rỗng; cả tạo tab Chrome mới cũng báo unavailable. Independent work đã hoàn tất; M3/M4/M5 BLOCKED tại bước interactive QA. Không coi build/HTTP tests là browser validation; chưa commit/push các thay đổi M3/M4.
+- Giữ dev server tại127.0.0.1:4323 để QA khi Chrome kết nối lại. Project state có checklist/next action và commits đã push (`aca4df1` mới nhất). Không deploy/push main.
+
+## 2026-10-04 — Gỡ Chrome-only blocker, hoàn tất QA M3/M4
+
+- Kiểm tra nhanh Codex Desktop Logs ở đường dẫn user đưa và các vị trí local tương ứng: chỉ thấy log đến29/09, không có log quanh04/10 00:46 (03/10 17:46UTC). Log cũ có browser lifecycle/disconnected khi app dừng, không đủ chứng cứ liên hệ với sự cố mới. Không xác định chắc nguyên nhân, không thay settings Codex/Chrome/account. Dừng điều tra để tiếp tục sản phẩm.
+- Cập nhật exact fallback rule và thứ tự local QA vào AGENTS.md/PLANS.md; điều chỉnh tiêu chí Phase7. Dùng Playwright dev dependency + Chromium đã có trên máy; không cần Chrome Integration hoặc reconnect để kiểm tra local.
+- QA bắt và sửa focus result của Image Match. Memory tạm trong trang được giữ khi localStorage chặn đọc/ghi hoặc chỉ chặn ghi; cảnh báo lỗi lưu memory giữ qua Next và chỉ hết sau lần lưu memory thành công. Không thêm backend/runtime dependency, không đổi Astro/React/data boundaries.
+- Final unit **52/52**, built HTML **7/7**, SITE_URL build **154 pages**, Astro/TypeScript **0 errors/warnings/hints**. Diff--check và import/debug-log review pass. Không có lint script.
+- Playwright **72/72** checks trong full matrix desktop1280×900/tablet768×1024/mobile390×844; thêm **3/3** checks lượt Image Match10 cặp trên cùng ba viewports (suite hiện có75 cases). Sáu game EN/VI:wrong/right, exact reload, score/result/restart, keyboard/Enter/Backspace/Tab và touch. Matching5 thành3+2 và10 thành4+4+2; locks/focus/order/progress/global memory verified.
+- Browser clock kiểm tra1d/7d/60d, wrong5h, early repeats không farm mastery, reset mastery và due-only review. School3 pictured mastered/4 core không complete; round migration giữ v2 và locale switch, không tạo mastery từ old seen IDs. Blocked/corrupt/partial storage và media404→retry/fallback được kiểm tra.
+- Width360/390/430/768/1280 không overflow; ảnh matching/progress desktop/tablet/mobile được render và review trực tiếp. Console app không có warning/error ngoài404 có chủ ý trong media-failure fixture. Optional remote Google Fonts CSS được thay bằng CSS rỗng trong test để kiểm tra system-font fallback, không phụ thuộc mạng ngoài và không suppress lỗi app.
+- Runner trong sandbox bị kẹt lúc đóng process tree trên Windows; dùng quyền chạy QA local để runner tự đóng đúng tiến trình do nó tạo. Final matrix và lượt10 cặp đều kết thúc **exit0**. Screenshot/trace/report ở test-results/ gitignored. Git milestone đang chốt trên dev branch; main/production không đổi.

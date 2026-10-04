@@ -1,8 +1,8 @@
 import type { Word } from '../types/content';
 import type { GameMode } from './vocabulary';
 
-// Future activities are eligibility rules only, not playable game modes.
-export type WordActivity = GameMode | 'image-match' | 'listening' | 'listen-to-word' | 'listen-to-image';
+// The generic listening alias and Listen/Word remain eligibility rules, not playable games.
+export type WordActivity = GameMode | 'listening' | 'listen-to-word';
 
 // Content supplies URLs; games do not infer filenames, extensions or storage providers.
 export function isMediaUrl(url: string | undefined): boolean {
